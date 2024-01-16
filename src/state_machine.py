@@ -5,6 +5,8 @@ from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot, QTimer
 import time
 import numpy as np
 import rclpy
+from rxarm import RXArm, RXArmThread
+import sys
 
 class StateMachine():
     """!
@@ -37,6 +39,8 @@ class StateMachine():
             [0.75*np.pi/2,   -0.5,      -0.3,          0.0,    np.pi/2],
             [np.pi/2,         0.5,       0.3,     -np.pi/3,        0.0],
             [0.0,             0.0,       0.0,          0.0,        0.0]]
+        
+        self.recorded_waypoints = []
 
     def set_next_state(self, state):
         """!
@@ -76,6 +80,13 @@ class StateMachine():
 
         if self.next_state == "manual":
             self.manual()
+        
+        if self.next_state == "record_waypoint":
+            self.record_waypoint()
+
+        if self.next_state == "execute_waypoints":
+            self.execute_waypoints()
+
 
 
     """Functions run for each state"""
@@ -109,6 +120,39 @@ class StateMachine():
               Make sure you respect estop signal
         """
         self.status_message = "State: Execute - Executing motion plan"
+        self.current_state = "execute"
+        for waypoint in self.waypoints:
+            self.rxarm.set_positions(waypoint)
+            time.sleep(4)
+            
+        self.next_state = "idle"
+
+    def execute_waypoints(self):
+        """!
+        @brief      Go through all recorded waypoints
+        """
+        self.status_message = "State: Execute - Executing motion plan"
+        self.current_state = "execute_waypoints"
+        for waypoint in self.recorded_waypoints:
+            self.rxarm.set_positions(waypoint)
+            time.sleep(4)
+            
+        self.next_state = "idle"
+   
+
+    def record_waypoint(self):
+        print("entered record button function")
+        sys.stdout.flush()
+
+        self.current_state = "record_waypoint"
+        curr_position = self.rxarm.get_positions()
+        print(curr_position)
+        self.recorded_waypoints.append(curr_position)
+
+        self.status_message = "recorded waypoint"
+
+        print(self.recorded_waypoints)
+        sys.stdout.flush()
         self.next_state = "idle"
 
     def calibrate(self):
@@ -160,6 +204,7 @@ class StateMachineThread(QThread):
         """!
         @brief      Update the state machine at a set rate
         """
+        print("debug 1")
         while True:
             self.sm.run()
             self.updateStatusMessage.emit(self.sm.status_message)
