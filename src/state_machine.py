@@ -41,6 +41,8 @@ class StateMachine():
             [0.0,             0.0,       0.0,          0.0,        0.0]]
         
         self.recorded_waypoints = []
+        self.recorded_gripper_position = []
+        self.gripper_open_flag = True
 
     def set_next_state(self, state):
         """!
@@ -133,12 +135,32 @@ class StateMachine():
         """
         self.status_message = "State: Execute - Executing motion plan"
         self.current_state = "execute_waypoints"
-        for waypoint in self.recorded_waypoints:
+
+        for idx, waypoint in enumerate(self.recorded_waypoints):
+            print("idx: ", idx)
             self.rxarm.set_positions(waypoint)
-            time.sleep(4)
+            time.sleep(1.5)
+            
+            if self.recorded_gripper_position[idx] is True:
+                self.rxarm.gripper.release()
+            else:
+                self.rxarm.gripper.grasp()
+
+            time.sleep(2)
             
         self.next_state = "idle"
    
+    # def close_gripper(self):
+    #     print("in close gripper")
+    #     self.status_message = "closing gripper"
+    #     self.rxarm.gripper.grasp()
+    #     self.gripper_open_flag = False
+
+    # def open_gripper(self):
+    #     print("in open gripper")
+    #     self.status_message = "releasing gripper"
+    #     self.rxarm.gripper.release()
+    #     self.gripper_open_flag = True
 
     def record_waypoint(self):
         print("entered record button function")
@@ -148,6 +170,10 @@ class StateMachine():
         curr_position = self.rxarm.get_positions()
         print(curr_position)
         self.recorded_waypoints.append(curr_position)
+
+        # record gripper open/close
+        self.recorded_gripper_position.append(self.rxarm.gripper_open_flag)
+        print("self.recorded_gripper_position: ", self.recorded_gripper_position)
 
         self.status_message = "recorded waypoint"
 

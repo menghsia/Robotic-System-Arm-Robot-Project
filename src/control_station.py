@@ -90,9 +90,16 @@ class Gui(QMainWindow):
         self.ui.btnUser1.setText("Calibrate")
         self.ui.btnUser1.clicked.connect(partial(nxt_if_arm_init, 'calibrate'))
         self.ui.btnUser2.setText('Open Gripper')
-        self.ui.btnUser2.clicked.connect(lambda: self.rxarm.gripper.release())
+        self.ui.btnUser2.clicked.connect(lambda: self.rxarm.open_gripper())
+        # self.ui.btnUser2.clicked.connect(lambda: self.rxarm.gripper.release())
+        # self.ui.btnUser2.clicked.connect(partial(nxt_if_arm_init, 'open_gripper'))
+
         self.ui.btnUser3.setText('Close Gripper')
-        self.ui.btnUser3.clicked.connect(lambda: self.rxarm.gripper.grasp())
+        # self.ui.btnUser3.clicked.connect(lambda: self.rxarm.gripper.grasp())
+        self.ui.btnUser3.clicked.connect(lambda: self.rxarm.close_gripper())
+        # self.ui.btnUser3.clicked.connect(partial(nxt_if_arm_init, 'close_gripper'))
+
+
         self.ui.btnUser4.setText('Execute')
         self.ui.btnUser4.clicked.connect(partial(nxt_if_arm_init, 'execute'))
 

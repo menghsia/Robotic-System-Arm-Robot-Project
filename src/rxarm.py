@@ -90,6 +90,8 @@ class RXArm(InterbotixManipulatorXS):
         self.M_matrix = []
         self.S_list = []
 
+        self.gripper_open_flag = True
+
     def initialize(self):
         """!
         @brief      Initializes the RXArm from given configuration file.
@@ -119,6 +121,18 @@ class RXArm(InterbotixManipulatorXS):
         self.gripper.release()
         self.initialized = True
         return self.initialized
+
+    def close_gripper(self):
+        print("in close gripper")
+        # self.status_message = "closing gripper"
+        self.gripper.grasp()
+        self.gripper_open_flag = False
+
+    def open_gripper(self):
+        print("in open gripper")
+        # self.status_message = "releasing gripper"
+        self.gripper.release()
+        self.gripper_open_flag = True
 
     def sleep(self):
         self.moving_time = 2.0
