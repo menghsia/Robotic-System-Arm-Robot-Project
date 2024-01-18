@@ -237,7 +237,20 @@ class Gui(QMainWindow):
             z = self.camera.DepthFrameRaw[pt.y()][pt.x()]
             self.ui.rdoutMousePixels.setText("(%.0f,%.0f,%.0f)" %
                                              (pt.x(), pt.y(), z))
-            self.ui.rdoutMouseWorld.setText("(-,-,-)")
+            
+            intrinsicMat = np.array([[977.9586,0,629.698,0],[0,968.400,363.818,0],[0,0,1,0],[0,0,0,1]])
+            # intrinsicMat = np.divide(intrinsicMat_mm, 970)
+            extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
+            uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), z,0]]))
+            # xyz_vec = np.dot(np.dot(np.linalg.inv(intrinsicMat),np.linalg.inv(extrinsicMat)), uvd_vec)
+            
+            xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_vec)
+            xyz_w = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
+
+            # self.ui.rdoutMouseWorld.setText("(-,-,-)")
+            self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+                                             (xyz_w[0], xyz_w[1], xyz_w[2]))  # .format{}
+            # self.ui.rdoutMouseWorld.setText("test123")
 
     def calibrateMousePress(self, mouse_event):
         """!
