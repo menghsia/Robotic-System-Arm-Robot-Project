@@ -230,7 +230,7 @@ class StateMachineThread(QThread):
         """!
         @brief      Update the state machine at a set rate
         """
-        print("debug 1")
+        # print("debug 1")
         while True:
             self.sm.run()
             self.updateStatusMessage.emit(self.sm.status_message)

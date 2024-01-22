@@ -249,11 +249,13 @@ class Gui(QMainWindow):
             xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_vec)
             xyz_c = np.append(xyz_c,[1])
             
-            xyz_w = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
+            xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
+            world_origin_tf = np.array([[1,0,0, -90], [0,1,0,50], [0,0,1,0], [0,0,0,1]])
+            xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
             # self.ui.rdoutMouseWorld.setText("(-,-,-)")
-            self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f,%.0f)" %
-                                             (xyz_w[0], xyz_w[1], xyz_w[2], xyz_w[3]))  # .format{}
+            self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+                                             (xyz_w[0], xyz_w[1], xyz_w[2])) 
             # self.ui.rdoutMouseWorld.setText("test123")
 
     def calibrateMousePress(self, mouse_event):
