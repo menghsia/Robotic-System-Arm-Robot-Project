@@ -88,7 +88,10 @@ class Gui(QMainWindow):
 
         #User Buttons
         self.ui.btnUser1.setText("Calibrate")
-        self.ui.btnUser1.clicked.connect(partial(nxt_if_arm_init, 'calibrate'))
+        # self.ui.btnUser1.clicked.connect(partial(nxt_if_arm_init, 'calibrate', self.camera.tag_ids_centers))  # pass as input self.camera.tag_ids_centers
+        self.ui.btnUser1.clicked.connect(lambda: self.sm.calibrate(self.camera.tag_ids_centers))  # pass as input self.camera.tag_ids_centers
+
+
         self.ui.btnUser2.setText('Open Gripper')
         self.ui.btnUser2.clicked.connect(lambda: self.rxarm.open_gripper())
         # self.ui.btnUser2.clicked.connect(lambda: self.rxarm.gripper.release())
@@ -255,9 +258,14 @@ class Gui(QMainWindow):
             xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
             # self.ui.rdoutMouseWorld.setText("(-,-,-)")
-            self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
-                                             (xyz_w[0], xyz_w[1], xyz_w[2])) 
-            # self.ui.rdoutMouseWorld.setText("test123")
+            # self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+            #                                  (xyz_w[0], xyz_w[1], xyz_w[2])) 
+
+            self.ui.rdoutMouseWorld.setText("Uncalibrated")
+            if self.sm.world_coord_calib_flag:
+                self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+                                    (xyz_w[0], xyz_w[1], xyz_w[2])) 
+
 
     def calibrateMousePress(self, mouse_event):
         """!

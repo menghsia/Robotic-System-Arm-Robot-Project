@@ -7,6 +7,7 @@ import numpy as np
 import rclpy
 from rxarm import RXArm, RXArmThread
 import sys
+import cv2
 
 class StateMachine():
     """!
@@ -43,6 +44,11 @@ class StateMachine():
         self.recorded_waypoints = []
         self.recorded_gripper_position = []
         self.gripper_open_flag = True
+        self.world_coord_calib_flag = False
+
+        self.apriltags_board_positions = np.array([[-250,-25],[250,-25],[250,275],[-250,275]])  #4x2
+        self.homography_matrix = []  #initialized empty
+
 
     def set_next_state(self, state):
         """!
@@ -181,7 +187,7 @@ class StateMachine():
         sys.stdout.flush()
         self.next_state = "idle"
 
-    def calibrate(self):
+    def calibrate(self, camera_ids_tags):
         """!
         @brief      Gets the user input to perform the calibration
         """
@@ -189,6 +195,23 @@ class StateMachine():
         self.next_state = "idle"
 
         """TODO Perform camera calibration routine here"""
+        # input1 = input("Enter calibration array: ")  
+        print(camera_ids_tags)
+        apriltag_centers_cv =[]
+        for tag_id, center_pair in camera_ids_tags.items():
+            print(tag_id)
+            print(type(center_pair))
+            apriltag_centers_cv.append([center_pair[0], center_pair[1]])
+
+        src_pts = np.asanyarray(apriltag_centers_cv)
+        print("apriltag_centers_cv: ", apriltag_centers_cv)
+
+        dest_pts = self.apriltags_board_positions
+        # self.homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
+        self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
+        print(type(self.camera.cam_homography_matrix))
+        
+        self.world_coord_calib_flag = True
         self.status_message = "Calibration - Completed Calibration"
 
     """ TODO """

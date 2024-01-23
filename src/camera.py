@@ -54,6 +54,10 @@ class Camera():
         self.block_contours = np.array([])
         self.block_detections = np.array([])
 
+        self.tag_ids_centers = {}  # dictionary initialized
+
+        self.cam_homography_matrix = np.array([])
+
     def processVideoFrame(self):
         """!
         @brief      Process a video frame
@@ -216,6 +220,8 @@ class Camera():
             # print("x: ",center_x, "y: ", center_y)
             # print(type(modified_image))
             center_coords = (int(center_x), int(center_y))
+            self.tag_ids_centers[int(tag.id)] = center_coords
+
             # print(type(center_coords))
             modified_image = cv2.circle(modified_image, center_coords, radius=5, color=(0,0,255), thickness=-1)
             # print(type(modified_image))
@@ -246,6 +252,12 @@ class ImageListener(Node):
             cv_image = self.bridge.imgmsg_to_cv2(data, data.encoding)
         except CvBridgeError as e:
             print(e)
+
+        if not (self.camera.cam_homography_matrix.size == 0):
+            # print("Homography matrix empty")
+            # print("Applying homography correction to image")
+            cv_image = cv2.warpPerspective(cv_image, self.camera.cam_homography_matrix, (cv_image.shape[1], cv_image.shape[0]))
+
         self.camera.VideoFrame = cv_image
 
 
