@@ -207,8 +207,18 @@ class Camera():
                     center of the tag: (detection.centre.x, detection.centre.y) they are floats
                     id of the tag: detection.id
         """
-        modified_image = self.VideoFrame.copy()
+        modified_image = self.VideoFrame.copy() #NDArray[uint8]
         # Write your code here
+        for tag in msg.detections:
+            center_x = tag.centre.x
+            center_y = tag.centre.y
+            # print(type(center_x))
+            # print("x: ",center_x, "y: ", center_y)
+            # print(type(modified_image))
+            center_coords = (int(center_x), int(center_y))
+            # print(type(center_coords))
+            modified_image = cv2.circle(modified_image, center_coords, radius=1, color=(0,0,255), thickness=-1)
+            # print(type(modified_image))
 
         self.TagImageFrame = modified_image
 
