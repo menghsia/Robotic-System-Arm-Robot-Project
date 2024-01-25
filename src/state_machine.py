@@ -46,7 +46,23 @@ class StateMachine():
         self.gripper_open_flag = True
         self.world_coord_calib_flag = False
 
-        self.apriltags_board_positions = np.array([[-250,-25],[250,-25],[250,275],[-250,275]])  #4x2
+        # self.apriltags_board_positions = np.array([[-250,-25, -1000, 1],[250,-25, -1000, 1],[250,275, -1000, 1],[-250,275,-1000, 1]])  #4x2 X Y Z 1
+        self.apriltags_board_positions = np.array([[-250,-25, -1049, 1],[250,-25, -1043, 1],[250,275, -988, 1],[-250,275,-995, 1]])  #4x2 X Y Z 1
+        self.apriltag1_position = np.array([-250,-25, -1049, 1])
+        intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
+        extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
+
+        P = np.dot(intrinsicMat, extrinsicMat)
+        print("P: ", P)
+        uvd_mat = np.dot(P, self.apriltags_board_positions.transpose())
+
+        print("uvd_mat: ", uvd_mat)
+
+        self.destpt1 = np.dot(P,self.apriltag1_position)
+        # dest_pt 1:  [ 381.32113472  590.65212668 1005.83505155    1.03092784]
+
+        self.source_pts = uvd_mat[:2, :]  #NOTE!!! source points are in UVD
+        # print("dest_pt 1: ", self.destpt1)
         self.homography_matrix = []  #initialized empty
 
 
@@ -206,7 +222,12 @@ class StateMachine():
         src_pts = np.asanyarray(apriltag_centers_cv)
         print("apriltag_centers_cv: ", apriltag_centers_cv)
 
-        dest_pts = self.apriltags_board_positions
+        # dest_pts = self.apriltags_board_positions
+        dest_pts = self.source_pts.transpose()
+
+        print("calibrate func src_pts: ", src_pts)
+        print("calibrate func dest_pts: ", dest_pts)
+
         # self.homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         print(type(self.camera.cam_homography_matrix))
