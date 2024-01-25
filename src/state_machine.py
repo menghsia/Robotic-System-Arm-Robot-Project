@@ -46,10 +46,18 @@ class StateMachine():
         self.gripper_open_flag = True
         self.world_coord_calib_flag = False
 
-        # self.apriltags_board_positions = np.array([[-250,-25, -1000, 1],[250,-25, -1000, 1],[250,275, -1000, 1],[-250,275,-1000, 1]])  #4x2 X Y Z 1
-        self.apriltags_board_positions = np.array([[-250,-25, -1049, 1],[250,-25, -1043, 1],[250,275, -988, 1],[-250,275,-995, 1]])  #4x2 X Y Z 1
-        self.apriltag1_position = np.array([-250,-25, -1049, 1])
+        # self.apriltags_board_positions = np.array([[-250,-25, -1049, 1],[250,-25, -1043, 1],[250,275, -988, 1],[-250,275,-995, 1]])  #4x2 X Y Z 1 with base link origin
+        # self.apriltags_board_positions = np.array([[-250,-200, -1049, 1],[250,-200, -1043, 1],[250,100, -988, 1],[-250,100,-995, 1]])  #4x2 X Y Z 1 with center board origin
+        # self.apriltags_board_positions = np.array([[-150,100, -1049, 1],[350,100, -1043, 1],[350,400, -988, 1],[-150,400,-995, 1]])  #4x2 with bottom left board origin
+
+        self.apriltags_board_positions = np.array([[-150,100, -1050, 1], [-165, 85, -1053, 1], [-135, 85, -1052,1], [-135, 115, -1048, 1], [-165, 115, -1046,1],
+                                                   [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
+                                                   [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
+                                                   [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1]])
+
+        self.apriltag1_position = np.array([-250,-200, -1049, 1])
         intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
+        # intrinsicMat = np.array([[904.6,0,635.982, 0],[0,905.29,353.06, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970 
         extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
 
         P = np.dot(intrinsicMat, extrinsicMat)
@@ -214,10 +222,11 @@ class StateMachine():
         # input1 = input("Enter calibration array: ")  
         print(camera_ids_tags)
         apriltag_centers_cv =[]
-        for tag_id, center_pair in camera_ids_tags.items():
+        for tag_id, point_pair_list in camera_ids_tags.items():
             print(tag_id)
-            print(type(center_pair))
-            apriltag_centers_cv.append([center_pair[0], center_pair[1]])
+            print(type(point_pair_list))
+            for point_pair in point_pair_list:
+                apriltag_centers_cv.append([point_pair[0], point_pair[1]])
 
         src_pts = np.asanyarray(apriltag_centers_cv)
         print("apriltag_centers_cv: ", apriltag_centers_cv)
