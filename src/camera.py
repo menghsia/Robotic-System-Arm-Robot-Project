@@ -55,6 +55,7 @@ class Camera():
         self.block_detections = np.array([])
 
         self.tag_ids_centers = {}  # dictionary initialized
+        self.tag_ids_centers_corners = {}  # center, corners 1, 2, 3, 4
 
         self.cam_homography_matrix = np.array([])
 
@@ -221,6 +222,10 @@ class Camera():
             # print(type(modified_image))
             center_coords = (int(center_x), int(center_y))
             self.tag_ids_centers[int(tag.id)] = center_coords
+            self.tag_ids_centers_corners[int(tag.id)] = [center_coords]
+
+            for corner in tag.corners:
+                self.tag_ids_centers_corners[int(tag.id)].append((int(corner.x), int(corner.y)))
 
             # print(type(center_coords))
             modified_image = cv2.circle(modified_image, center_coords, radius=5, color=(0,0,255), thickness=-1)
@@ -232,6 +237,11 @@ class Camera():
             modified_image = cv2.line(modified_image, (int(corners_list[1].x), int(corners_list[1].y)), (int(corners_list[2].x), int(corners_list[2].y)), (255,0,0), 3)
             modified_image = cv2.line(modified_image, (int(corners_list[2].x), int(corners_list[2].y)), (int(corners_list[3].x), int(corners_list[3].y)), (255,0,0), 3)
             modified_image = cv2.line(modified_image, (int(corners_list[3].x), int(corners_list[3].y)), (int(corners_list[0].x), int(corners_list[0].y)), (255,0,0), 3)
+
+            modified_image = cv2.circle(modified_image, (int(corners_list[0].x), int(corners_list[0].y)), radius=5, color=(255,0,0), thickness=-1) #corner 0
+            modified_image = cv2.circle(modified_image, (int(corners_list[1].x), int(corners_list[1].y)), radius=5, color=(0,255,0), thickness=-1) #corner 1
+            modified_image = cv2.circle(modified_image, (int(corners_list[2].x), int(corners_list[2].y)), radius=5, color=(0,0,255), thickness=-1) #corner 2; corner 3 is not colored
+
             
             id_text = "ID: " + str(tag.id)
             modified_image = cv2.putText(modified_image, id_text, (int(corners_list[2].x) -70, int(corners_list[2].y)-70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 1, cv2.LINE_AA, False)

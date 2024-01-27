@@ -89,7 +89,8 @@ class Gui(QMainWindow):
         #User Buttons
         self.ui.btnUser1.setText("Calibrate")
         # self.ui.btnUser1.clicked.connect(partial(nxt_if_arm_init, 'calibrate', self.camera.tag_ids_centers))  # pass as input self.camera.tag_ids_centers
-        self.ui.btnUser1.clicked.connect(lambda: self.sm.calibrate(self.camera.tag_ids_centers))  # pass as input self.camera.tag_ids_centers
+        # self.ui.btnUser1.clicked.connect(lambda: self.sm.calibrate(self.camera.tag_ids_centers))  # pass as input self.camera.tag_ids_centers
+        self.ui.btnUser1.clicked.connect(lambda: self.sm.calibrate(self.camera.tag_ids_centers_corners))  # pass as input self.camera.tag_ids_centers
 
 
         self.ui.btnUser2.setText('Open Gripper')
@@ -254,17 +255,32 @@ class Gui(QMainWindow):
             xyz_c = np.append(xyz_c,[1])
             
             xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
-            world_origin_tf = np.array([[1,0,0, -90], [0,1,0,50], [0,0,1,0], [0,0,0,1]])
+            # world_origin_tf = np.array([[1,0,0, -90], [0,1,0,50], [0,0,1,0], [0,0,0,1]])
+            # world_origin_tf = np.array([[1,0,0, -107], [0,1,0, 91], [0,0,1,0], [0,0,0,1]])
+            world_origin_tf = np.array([[1,0,0, 0], [0,1,0, 0], [0,0,1,0], [0,0,0,1]])
             xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
-            # self.ui.rdoutMouseWorld.setText("(-,-,-)")
-            # self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
-            #                                  (xyz_w[0], xyz_w[1], xyz_w[2])) 
+            if not (self.camera.cam_homography_matrix.size == 0):
 
-            self.ui.rdoutMouseWorld.setText("Uncalibrated")
-            if self.sm.world_coord_calib_flag:
-                self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
-                                    (xyz_w[0], xyz_w[1], xyz_w[2])) 
+                homography_mat = self.camera.cam_homography_matrix
+                print("homography_mat: ", homography_mat) # 3x3
+                print(type(homography_mat))
+
+                # xyz_w needs to be in uvd
+                corr_xyz = np.dot(np.linalg.inv(homography_mat), xyz_w[:3])
+
+
+                if self.sm.world_coord_calib_flag:
+                    self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+                                        (corr_xyz[0], corr_xyz[1], corr_xyz[2])) 
+            
+            else:
+                if not self.sm.world_coord_calib_flag:
+                    self.ui.rdoutMouseWorld.setText("Uncalibrated")
+                    self.ui.rdoutMouseWorld.setText("(-,-,-)")
+                    # self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+                    #                                 (xyz_w[0], xyz_w[1], xyz_w[2])) 
+
 
 
     def calibrateMousePress(self, mouse_event):
