@@ -207,7 +207,12 @@ class RXArm(InterbotixManipulatorXS):
 
         @return     The EE pose as [x, y, z, phi] or as needed.
         """
-        return [0, 0, 0, 0]
+        # The end effector is the 5th link
+        EE_link = 5
+
+        EndEffectorPose = get_pose_from_T(FK_dh(self.dh_params, self.joint_angles, EE_link))
+
+        return EndEffectorPose
 
     @_ensure_initialized
     def get_wrist_pose(self):

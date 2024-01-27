@@ -4,7 +4,7 @@ Implements Forward and Inverse kinematics with DH parametrs and product of expon
 TODO: Here is where you will write all of your kinematics functions
 There are some functions to start with, you may need to implement a few more
 """
-
+import math
 import numpy as np
 # expm is a matrix exponential function
 from scipy.linalg import expm
@@ -44,10 +44,29 @@ def FK_dh(dh_params, joint_angles, link):
 
     @return     a transformation matrix representing the pose of the desired link
     """
-    pass
+    # Initialize the vectors
+    length = []
+    twist = []
+    offset = []
+    angle = []
+    A = []
+    T = 1
+    
+    # Construct transformation matrix for link
+    for i in range(link):
+        length[i] = dh_params[i,0]
+        twist[i] = dh_params[i,1]
+        offset[i] = dh_params[i,2]
+        angle[i] = dh_params[i,3]
 
+        A[i] = get_transform_from_dh(length[i],twist[i],offset[i],angle[i])
+        T *= A[i]*joint_angles[i]
+    
+    return T
+    
 
 def get_transform_from_dh(a, alpha, d, theta):
+
     """!
     @brief      Gets the transformation matrix T from dh parameters.
 
@@ -60,7 +79,11 @@ def get_transform_from_dh(a, alpha, d, theta):
 
     @return     The 4x4 transformation matrix.
     """
-    pass
+    A = [[math.cos(angle), -math.sin(angle) * math.cos(twist), math.sin(angle) * math.sin(twist), length * math.cos(angle)] , 
+                    [math.sin(angle), math.cos(angle) * math.cos(twist), -math.cos(angle) * math.sin(twist), length * math.sin(angle)] ,
+                    [0, math.sin(twist), math.cos(twist), offset] , 
+                    [0, 0, 0, 1]]
+    return A
 
 
 def get_euler_angles_from_T(T):
