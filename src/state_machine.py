@@ -55,7 +55,7 @@ class StateMachine():
                                                    [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
                                                    [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
                                                    [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1],
-                                                   [100,450,-961,1], [-250,250, -999,1], [-50,200,-1007,1], [200,200,-1003,1]])
+                                                   [100,450,-961,1], [-250,250, -999,1], [0,0,-1041,1], [200,200,-1003,1]])
 
         self.apriltag1_position = np.array([-250,-200, -1049, 1])
         intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
@@ -63,7 +63,7 @@ class StateMachine():
         extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
 
         P = np.dot(intrinsicMat, extrinsicMat) # 4x4
-        print("P: ", P)
+        # print("P: ", P)
         uvd_mat = np.dot(P, self.apriltags_board_positions.transpose()) # 4xn
 
         # print("uvd_mat: ", uvd_mat)
@@ -248,7 +248,7 @@ class StateMachine():
         
         
         # print("calibrate func src_pts: ", src_pts)
-        # print("calibrate func dest_pts: ", dest_pts)
+        print("calibrate func dest_pts: ", dest_pts)
 
         # self.homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]

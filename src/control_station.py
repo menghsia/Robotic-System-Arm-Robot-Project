@@ -249,6 +249,7 @@ class Gui(QMainWindow):
             extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
 
             uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), z]]))
+            # uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), -1000]]))
             # xyz_vec = np.dot(np.dot(np.linalg.inv(intrinsicMat),np.linalg.inv(extrinsicMat)), uvd_vec)
             
             xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_vec)
@@ -257,27 +258,29 @@ class Gui(QMainWindow):
             xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
             # world_origin_tf = np.array([[1,0,0, -90], [0,1,0,50], [0,0,1,0], [0,0,0,1]])
             # world_origin_tf = np.array([[1,0,0, -107], [0,1,0, 91], [0,0,1,0], [0,0,0,1]])
-            world_origin_tf = np.array([[1,0,0, 0], [0,1,0, 0], [0,0,1,0], [0,0,0,1]])
+            world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
             xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
             if not (self.camera.cam_homography_matrix.size == 0):
 
                 homography_mat = self.camera.cam_homography_matrix
-                print("homography_mat: ", homography_mat) # 3x3
-                print(type(homography_mat))
+                # print("homography_mat: ", homography_mat) # 3x3
+                # print(type(homography_mat))
 
-                # xyz_w needs to be in uvd
-                # corr_xyz = np.dot(np.linalg.inv(homography_mat), xyz_w[:3])  # xyz_w is in world coordinates (mm) wrt the off-base origin
-                img = np.array([xyz_w[0], xyz_w[1]])
-                un_warped = cv2.warpPerspective(img, homography_mat, (1280, 720), flags=cv2.INTER_LINEAR) #1280 720
-                print(un_warped)
-                print("shape of unwarped: ", un_warped.shape)
-                corr_xyz = [un_warped[0][0], un_warped[0][1], xyz_w[2]]
+                uv_vec = np.transpose(np.array([[pt.x(), pt.y(), 1.]]))
+                uv_dash_vec = np.dot(homography_mat, uv_vec)
+                uvd_dash_vec = np.array([uv_dash_vec[0], uv_dash_vec[1], z], dtype=object)
+                xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_dash_vec)
+                xyz_c = np.append(xyz_c,[1])
 
+                xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
+                # world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
+                world_origin_tf = np.array([[1,0,0, -115], [0,1,0, -9], [0,0,1,0], [0,0,0,1]])
+                xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
                 if self.sm.world_coord_calib_flag:
                     self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
-                                        (corr_xyz[0], corr_xyz[1], corr_xyz[2])) 
+                                        (xyz_w[0], xyz_w[1], xyz_w[2])) 
             
             else:
                 if not self.sm.world_coord_calib_flag:

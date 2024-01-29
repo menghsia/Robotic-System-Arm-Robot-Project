@@ -210,7 +210,8 @@ class RXArm(InterbotixManipulatorXS):
         # The end effector is the 5th link
         EE_link = 5
 
-        EndEffectorPose = get_pose_from_T(FK_dh(self.dh_params, self.joint_angles, EE_link))
+        # EndEffectorPose = get_pose_from_T(FK_dh(self.dh_params, self.joint_angles, EE_link))
+        EndEffectorPose = get_pose_from_T(FK_dh(self.dh_params, self.joint_names, EE_link))
 
         return EndEffectorPose
 
