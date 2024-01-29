@@ -50,26 +50,36 @@ class StateMachine():
         # self.apriltags_board_positions = np.array([[-250,-200, -1049, 1],[250,-200, -1043, 1],[250,100, -988, 1],[-250,100,-995, 1]])  #4x2 X Y Z 1 with center board origin
         # self.apriltags_board_positions = np.array([[-150,100, -1049, 1],[350,100, -1043, 1],[350,400, -988, 1],[-150,400,-995, 1]])  #4x2 with bottom left board origin
 
+        # order matters
         self.apriltags_board_positions = np.array([[-150,100, -1050, 1], [-165, 85, -1053, 1], [-135, 85, -1052,1], [-135, 115, -1048, 1], [-165, 115, -1046,1],
                                                    [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
                                                    [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
-                                                   [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1]])
+                                                   [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1],
+                                                   [100,450,-961,1], [-250,250, -999,1], [-50,200,-1007,1], [200,200,-1003,1]])
 
         self.apriltag1_position = np.array([-250,-200, -1049, 1])
         intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
         # intrinsicMat = np.array([[904.6,0,635.982, 0],[0,905.29,353.06, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970 
         extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
 
-        P = np.dot(intrinsicMat, extrinsicMat)
+        P = np.dot(intrinsicMat, extrinsicMat) # 4x4
         print("P: ", P)
-        uvd_mat = np.dot(P, self.apriltags_board_positions.transpose())
+        uvd_mat = np.dot(P, self.apriltags_board_positions.transpose()) # 4xn
 
-        print("uvd_mat: ", uvd_mat)
+        # print("uvd_mat: ", uvd_mat)
 
         self.destpt1 = np.dot(P,self.apriltag1_position)
         # dest_pt 1:  [ 381.32113472  590.65212668 1005.83505155    1.03092784]
 
-        self.source_pts = uvd_mat[:2, :]  #NOTE!!! source points are in UVD
+        self.dest_points = uvd_mat[:2, :]  #NOTE!!! source points are in UVD
+        self.dest_points = self.dest_points.transpose()
+         # this is in xyz world coordinates (mm)
+        # self.dest_points = self.apriltags_board_positions.transpose()[:2, :] # 2x24
+        # self.dest_points = self.apriltags_board_positions.reshape(24,4)
+        # self.dest_points = self.dest_points[:,:2]
+        print("self dest pts SHAPE: ", self.dest_points.shape, "self dest pts: ", self.dest_points)  # 2x24 but we need 24x2
+        
+        # self.dest_points = self.apriltags_board_positions[:, :2]
         # print("dest_pt 1: ", self.destpt1)
         self.homography_matrix = []  #initialized empty
 
@@ -213,6 +223,7 @@ class StateMachine():
 
     def calibrate(self, camera_ids_tags):
         """!
+        camera_ids_tags: includes center, 4 corners
         @brief      Gets the user input to perform the calibration
         """
         self.current_state = "calibrate"
@@ -220,22 +231,24 @@ class StateMachine():
 
         """TODO Perform camera calibration routine here"""
         # input1 = input("Enter calibration array: ")  
-        print(camera_ids_tags)
-        apriltag_centers_cv =[]
+        print(camera_ids_tags) 
+        apriltag_centers_corners_cv =[]
         for tag_id, point_pair_list in camera_ids_tags.items():
-            print(tag_id)
+            print("TEST tag id order: ", tag_id)
             print(type(point_pair_list))
             for point_pair in point_pair_list:
-                apriltag_centers_cv.append([point_pair[0], point_pair[1]])
+                apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # uvd
 
-        src_pts = np.asanyarray(apriltag_centers_cv)
-        print("apriltag_centers_cv: ", apriltag_centers_cv)
+        src_pts = np.asanyarray(apriltag_centers_corners_cv) # in xyz world coords in the original plane, 
+        # print("apriltag_centers_corners_cv: ", apriltag_centers_corners_cv)
+        print("shape of src points: ", src_pts.shape, " src_pts: ", src_pts)
 
         # dest_pts = self.apriltags_board_positions
-        dest_pts = self.source_pts.transpose()
-
-        print("calibrate func src_pts: ", src_pts)
-        print("calibrate func dest_pts: ", dest_pts)
+        dest_pts = self.dest_points # 24x2
+        
+        
+        # print("calibrate func src_pts: ", src_pts)
+        # print("calibrate func dest_pts: ", dest_pts)
 
         # self.homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]

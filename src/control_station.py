@@ -267,7 +267,12 @@ class Gui(QMainWindow):
                 print(type(homography_mat))
 
                 # xyz_w needs to be in uvd
-                corr_xyz = np.dot(np.linalg.inv(homography_mat), xyz_w[:3])
+                # corr_xyz = np.dot(np.linalg.inv(homography_mat), xyz_w[:3])  # xyz_w is in world coordinates (mm) wrt the off-base origin
+                img = np.array([xyz_w[0], xyz_w[1]])
+                un_warped = cv2.warpPerspective(img, homography_mat, (1280, 720), flags=cv2.INTER_LINEAR) #1280 720
+                print(un_warped)
+                print("shape of unwarped: ", un_warped.shape)
+                corr_xyz = [un_warped[0][0], un_warped[0][1], xyz_w[2]]
 
 
                 if self.sm.world_coord_calib_flag:
@@ -276,10 +281,10 @@ class Gui(QMainWindow):
             
             else:
                 if not self.sm.world_coord_calib_flag:
-                    self.ui.rdoutMouseWorld.setText("Uncalibrated")
-                    self.ui.rdoutMouseWorld.setText("(-,-,-)")
-                    # self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
-                    #                                 (xyz_w[0], xyz_w[1], xyz_w[2])) 
+                    # self.ui.rdoutMouseWorld.setText("Uncalibrated")
+                    # self.ui.rdoutMouseWorld.setText("(-,-,-)")
+                    self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
+                                                    (xyz_w[0], xyz_w[1], xyz_w[2])) 
 
 
 

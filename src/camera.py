@@ -224,11 +224,12 @@ class Camera():
             self.tag_ids_centers[int(tag.id)] = center_coords
             self.tag_ids_centers_corners[int(tag.id)] = [center_coords]
 
-            for corner in tag.corners:
-                self.tag_ids_centers_corners[int(tag.id)].append((int(corner.x), int(corner.y)))
+            if (tag.id <= 4):
+                for corner in tag.corners:
+                    self.tag_ids_centers_corners[int(tag.id)].append((int(corner.x), int(corner.y)))
 
             # print(type(center_coords))
-            modified_image = cv2.circle(modified_image, center_coords, radius=5, color=(0,0,255), thickness=-1)
+            modified_image = cv2.circle(modified_image, center_coords, radius=5, color=(0,0,255), thickness=-1) # for the center
             # print(type(modified_image))
 
             corners_list = tag.corners
@@ -266,7 +267,8 @@ class ImageListener(Node):
         if not (self.camera.cam_homography_matrix.size == 0):
             # print("Homography matrix empty")
             # print("Applying homography correction to image")
-            cv_image = cv2.warpPerspective(cv_image, self.camera.cam_homography_matrix, (cv_image.shape[1], cv_image.shape[0]))
+            print("cv_image.shape[1], cv_image.shape[0]: ", cv_image.shape[1], cv_image.shape[0]) # 1280 720
+            cv_image = cv2.warpPerspective(cv_image, self.camera.cam_homography_matrix, (cv_image.shape[1], cv_image.shape[0]), flags=cv2.INTER_LINEAR)
 
         self.camera.VideoFrame = cv_image
 
