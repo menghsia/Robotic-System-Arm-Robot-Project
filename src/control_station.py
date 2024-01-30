@@ -242,20 +242,22 @@ class Gui(QMainWindow):
             self.ui.rdoutMousePixels.setText("(%.0f,%.0f,%.0f)" %
                                              (pt.x(), pt.y(), z))
             
-            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
+            # intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
+            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
+
             # intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1000]]) / 970     # factory intrinsic matrix
-            # extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
+            extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
             # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]]) # original v2
-            extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
+            # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
             
             K_inv = np.linalg.inv(intrinsicMat)
-            point_uvd = np.array([[pt.x(), pt.y(), z]]
+            point_uvd = np.array([[pt.x(), pt.y(), z]])
             point_uv = np.delete(point_uvd, -1, axis=1)  # stores only 1st and 2nd cols of point_uvd
             depth_camera = np.transpose(np.delete(point_uvd, (0, 1), axis=1)) # stores only 3rd col of point_uvd
             point_ones = np.ones(depth_camera.size)
             point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv, point_ones)))))
 
-            points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera, point_ones)))
+            points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera, point_ones))))
             xyz_w = points_transformed_ideal
 
             # uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), z]]))
@@ -269,15 +271,15 @@ class Gui(QMainWindow):
             if not (self.camera.cam_homography_matrix.size == 0):
 
                 homography_mat = self.camera.cam_homography_matrix
-                point_uvd = np.array([[pt.x(), pt.y(), z]]
+                point_uvd = np.array([[pt.x(), pt.y(), z]])
                 point_uv = np.delete(point_uvd, -1, axis=1)
                 depth_camera = np.transpose(np.delete(point_uvd, (0, 1), axis=1))
                 point_ones = np.ones(depth_camera.size)
 
                 point_uv_dash = np.dot(homography_mat, point_uv)
                 # point_uvd_dash = np.array([[point_uv_dash[0][0],point_uv_dash[0][1], ]])
-                point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones))))
-                points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera,          point_ones)))
+                point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones)))))
+                points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera, point_ones))))
                 xyz_w = points_transformed_ideal
 
 
