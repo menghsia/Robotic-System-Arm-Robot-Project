@@ -25,6 +25,7 @@ D = np.array([
 
 K_inv = np.linalg.inv(K)
 
+# NOTE need to find pos and quaternion
 apriltag_bundle_pos = np.array(
     [-0.013807435091499483, 0.21568357650940687, 0.9663106233532031])
 apriltag_bundle_q = np.array([
@@ -36,20 +37,26 @@ apriltag_bundle_q = np.array([
 #                        [222, 680, 1000.02], [648, 160, 982.37],
 #                        [648, 396, 984.71], [1077, 158, 978.16],
 #                        [1079, 397, 980.94], [1081, 685, 979.85]])
+
+# points_uvd is knownfrom apriltags
 points_uvd = np.array([[225, 160, 993.69], [223, 396, 995.10],
                        [222, 680, 1000.02], [648, 160, 982.37],
                        [648, 396, 984.71], [1077, 158, 978.16],
                        [1079, 397, 980.94], [1081, 685, 979.85], 
                        [430, 350, 879.68], [859, 558, 872.64], 
                        [1010, 347, 926.42], [290, 549, 942.24]])
+
 #pixel coordinates in homogeneous coordinates
-points_uv = np.delete(points_uvd, -1, axis=1)
+points_uv = np.delete(points_uvd, -1, axis=1)  # stores only 1st and 2nd cols of points_uvd
 #depths from realsense (in mm) at pixel locations
-depths_camera = np.transpose(np.delete(points_uvd, (0, 1), axis=1))
+depths_camera = np.transpose(np.delete(points_uvd, (0, 1), axis=1)) # stores only 3rd col of points_uvd
+
 #corresponding world points (mm) (not homogeneous)
 # points_world = np.array([[-450, 425, 0.0], [-450, 175, 0.0], [-450, -125, 0.0],
 #                          [0, 425, 0.0], [0, 175, 0.0], [450, 425, 0.0],
 #                          [450, 175, 0.0], [450, -125, 0.0]])
+
+# known from direct measurements
 points_world = np.array([[-450, 425, 0.0], [-450, 175, 0.0], [-450, -125, 0.0],
                          [0, 425, 0.0], [0, 175, 0.0], [450, 425, 0.0],
                          [450, 175, 0.0], [450, -125, 0.0], [-200., 225., 117.0], 
@@ -57,12 +64,14 @@ points_world = np.array([[-450, 425, 0.0], [-450, 175, 0.0], [-450, -125, 0.0],
 #world points in camera frame (mm) (not homogeneous)
 points_ones = np.ones(depths_camera.size)
 
-points_camera = np.transpose(
-    depths_camera *
+points_camera = np.transpose(depths_camera *
     np.dot(K_inv, np.transpose(np.column_stack((points_uv, points_ones)))))
 
-A_ideal = np.matrix([[1., 0, 0, -14], [0, -1., 0, 195.],
-                             [0, 0, -1., 985.], [0, 0, 0, 1.]])
+# NOTE this might be physically measured extrinsic matrix
+A_ideal = np.matrix([[1., 0, 0, -14], 
+                    [0, -1., 0, 195.],
+                    [0, 0, -1., 985.], 
+                    [0, 0, 0, 1.]])
 
 
 def quaternion_rotation_matrix(Q):
@@ -203,7 +212,7 @@ def recover_homogeneous_transform_svd(m, d):
     return np.transpose(np.column_stack((np.row_stack((R, T)), (0, 0, 0, 1))))
 
 
-# calculate A with naive extrinsic matrix
+# calculate A with naive extrinsic matrix (?physically measured one)
 points_transformed_ideal = np.dot(
     np.linalg.inv(A_ideal), np.transpose(np.column_stack(
         (points_camera, points_ones))))
