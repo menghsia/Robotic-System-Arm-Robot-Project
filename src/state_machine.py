@@ -51,11 +51,18 @@ class StateMachine():
         # self.apriltags_board_positions = np.array([[-150,100, -1049, 1],[350,100, -1043, 1],[350,400, -988, 1],[-150,400,-995, 1]])  #4x2 with bottom left board origin
 
         # order matters
+        # for tags 1-8, corners included only for 1-4
+        # self.apriltags_board_positions = np.array([[-150,100, -1050, 1], [-165, 85, -1053, 1], [-135, 85, -1052,1], [-135, 115, -1048, 1], [-165, 115, -1046,1],
+        #                                            [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
+        #                                            [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
+        #                                            [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1],
+        #                                            [100,450,-961,1], [-250,250, -999,1], [0,0,-1041,1], [200,200,-1003,1]])
+        
+        # for tags 1-4, including all corners
         self.apriltags_board_positions = np.array([[-150,100, -1050, 1], [-165, 85, -1053, 1], [-135, 85, -1052,1], [-135, 115, -1048, 1], [-165, 115, -1046,1],
-                                                   [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
-                                                   [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
-                                                   [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1],
-                                                   [100,450,-961,1], [-250,250, -999,1], [0,0,-1041,1], [200,200,-1003,1]])
+                                            [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
+                                            [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
+                                            [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1]])
 
         self.apriltag1_position = np.array([-250,-200, -1049, 1])
         intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
@@ -239,12 +246,11 @@ class StateMachine():
             for point_pair in point_pair_list:
                 apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # uvd
 
-        src_pts = np.asanyarray(apriltag_centers_corners_cv) # in xyz world coords in the original plane, 
+        src_pts = np.asanyarray(apriltag_centers_corners_cv) # in uvd world coords in the original plane, 
         # print("apriltag_centers_corners_cv: ", apriltag_centers_corners_cv)
         print("shape of src points: ", src_pts.shape, " src_pts: ", src_pts)
 
-        # dest_pts = self.apriltags_board_positions
-        dest_pts = self.dest_points # 24x2
+        dest_pts = self.dest_points # 24x2 in XYZ
         
         
         # print("calibrate func src_pts: ", src_pts)
