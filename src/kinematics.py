@@ -57,7 +57,6 @@ def FK_dh(dh_params, joint_angles, link):
         length[i] = dh_params[i,0]
         twist[i] = dh_params[i,1]
         offset[i] = dh_params[i,2]
-        angle[i] = dh_params[i,3]
 
         A[i] = get_transform_from_dh(length[i],twist[i],offset[i],angle[i])
         T *= A[i]*joint_angles[i]
@@ -97,7 +96,11 @@ def get_euler_angles_from_T(T):
 
     @return     The euler angles from T.
     """
-    pass
+    yaw = math.atan2(T(1,0),-T(2,0))
+    pitch = math.acos(T(0,0))
+    roll = math.atan2(T(0,1),T(0,2))
+    
+    return yaw, pitch, roll
 
 
 def get_pose_from_T(T):
@@ -110,38 +113,46 @@ def get_pose_from_T(T):
 
     @return     The pose vector from T.
     """
-    pass
+    x = T[3,0]
+    y = T[3,1]
+    z = T[3,3]
+
+    yaw, pitch, roll = get_euler_angles_from_T(T)
+
+    pose = [x,y,z,yaw,pitch,roll]
+
+    return pose
 
 
-def FK_pox(joint_angles, m_mat, s_lst):
-    """!
-    @brief      Get a  representing the pose of the desired link
+# def FK_pox(joint_angles, m_mat, s_lst):
+#     """!
+#     @brief      Get a  representing the pose of the desired link
 
-                TODO: implement this function, Calculate forward kinematics for rexarm using product of exponential
-                formulation return a 4x4 homogeneous matrix representing the pose of the desired link
+#                 TODO: implement this function, Calculate forward kinematics for rexarm using product of exponential
+#                 formulation return a 4x4 homogeneous matrix representing the pose of the desired link
 
-    @param      joint_angles  The joint angles
-                m_mat         The M matrix
-                s_lst         List of screw vectors
+#     @param      joint_angles  The joint angles
+#                 m_mat         The M matrix
+#                 s_lst         List of screw vectors
 
-    @return     a 4x4 homogeneous matrix representing the pose of the desired link
-    """
-    pass
+#     @return     a 4x4 homogeneous matrix representing the pose of the desired link
+#     """
+#     pass
 
 
-def to_s_matrix(w, v):
-    """!
-    @brief      Convert to s matrix.
+# def to_s_matrix(w, v):
+#     """!
+#     @brief      Convert to s matrix.
 
-    TODO: implement this function
-    Find the [s] matrix for the POX method e^([s]*theta)
+#     TODO: implement this function
+#     Find the [s] matrix for the POX method e^([s]*theta)
 
-    @param      w     { parameter_description }
-    @param      v     { parameter_description }
+#     @param      w     { parameter_description }
+#     @param      v     { parameter_description }
 
-    @return     { description_of_the_return_value }
-    """
-    pass
+#     @return     { description_of_the_return_value }
+#     """
+#     pass
 
 
 def IK_geometric(dh_params, pose):
