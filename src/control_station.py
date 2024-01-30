@@ -247,36 +247,47 @@ class Gui(QMainWindow):
             # extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
             # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]]) # original v2
             extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
+            
+            K_inv = np.linalg.inv(intrinsicMat)
+            point_uvd = np.array([[pt.x(), pt.y(), z]]
+            point_uv = np.delete(point_uvd, -1, axis=1)  # stores only 1st and 2nd cols of point_uvd
+            depth_camera = np.transpose(np.delete(point_uvd, (0, 1), axis=1)) # stores only 3rd col of point_uvd
+            point_ones = np.ones(depth_camera.size)
+            point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv, point_ones)))))
 
-            uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), z]]))
-            # uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), -1000]]))
-            # xyz_vec = np.dot(np.dot(np.linalg.inv(intrinsicMat),np.linalg.inv(extrinsicMat)), uvd_vec)
+            points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera, point_ones)))
+            xyz_w = points_transformed_ideal
+
+            # uvd_vec = np.transpose(np.array([[pt.x(), pt.y(), z]]))
+            # xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_vec)
+            # xyz_c = np.append(xyz_c,[1])
             
-            xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_vec)
-            xyz_c = np.append(xyz_c,[1])
-            
-            xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
-            # world_origin_tf = np.array([[1,0,0, -90], [0,1,0,50], [0,0,1,0], [0,0,0,1]])
-            # world_origin_tf = np.array([[1,0,0, -107], [0,1,0, 91], [0,0,1,0], [0,0,0,1]])
-            world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
-            xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
+            # xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
+            # world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
+            # xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
             if not (self.camera.cam_homography_matrix.size == 0):
 
                 homography_mat = self.camera.cam_homography_matrix
-                # print("homography_mat: ", homography_mat) # 3x3
-                # print(type(homography_mat))
+                point_uvd = np.array([[pt.x(), pt.y(), z]]
+                point_uv = np.delete(point_uvd, -1, axis=1)
+                depth_camera = np.transpose(np.delete(point_uvd, (0, 1), axis=1))
+                point_ones = np.ones(depth_camera.size)
 
-                uv_vec = np.transpose(np.array([[pt.x(), pt.y(), 1.]]))
-                uv_dash_vec = np.dot(homography_mat, uv_vec)
-                uvd_dash_vec = np.array([uv_dash_vec[0], uv_dash_vec[1], z], dtype=object)
-                xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_dash_vec)
-                xyz_c = np.append(xyz_c,[1])
+                point_uv_dash = np.dot(homography_mat, point_uv)
+                # point_uvd_dash = np.array([[point_uv_dash[0][0],point_uv_dash[0][1], ]])
+                point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones))))
+                points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera,          point_ones)))
+                xyz_w = points_transformed_ideal
 
-                xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
-                # world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
-                world_origin_tf = np.array([[1,0,0, -115], [0,1,0, -9], [0,0,1,0], [0,0,0,1]])
-                xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
+
+                # uvd_dash_vec = np.array([uv_dash_vec[0], uv_dash_vec[1], z], dtype=object)
+                # xyz_c = np.dot(np.linalg.inv(intrinsicMat), uvd_dash_vec)
+                # xyz_c = np.append(xyz_c,[1])
+                # xyz_w_pre_tf = np.dot(np.linalg.inv(extrinsicMat), xyz_c)
+                # # world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
+                # world_origin_tf = np.array([[1,0,0, -115], [0,1,0, -9], [0,0,1,0], [0,0,0,1]])
+                # xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
                 if self.sm.world_coord_calib_flag:
                     self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
