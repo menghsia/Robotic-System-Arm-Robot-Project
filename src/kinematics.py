@@ -49,17 +49,21 @@ def FK_dh(dh_params, joint_angles, link):
     twist = []
     offset = []
     angle = []
-    A = []
-    T = 1
+    A = np.empty([4,4])
+    T = np.ones([4,4])
     
     # Construct transformation matrix for link
-    for i in range(link):
-        length[i] = dh_params[i,0]
-        twist[i] = dh_params[i,1]
-        offset[i] = dh_params[i,2]
+    for i in range(link - 1):
+        curr = dh_params[i]
 
-        A[i] = get_transform_from_dh(length[i],twist[i],offset[i],angle[i])
-        T *= A[i]*joint_angles[i]
+        angle = curr[0]
+        length = curr[1]
+        twist = curr[2]
+        offset = curr[3]
+        
+        A = get_transform_from_dh(length,twist,offset,angle)
+        A = np.dot(joint_angles[i], A)
+        T *= A
     
     return T
     
@@ -78,10 +82,16 @@ def get_transform_from_dh(a, alpha, d, theta):
 
     @return     The 4x4 transformation matrix.
     """
+    length = a
+    twist = alpha
+    offset = d
+    angle = theta
+
     A = [[math.cos(angle), -math.sin(angle) * math.cos(twist), math.sin(angle) * math.sin(twist), length * math.cos(angle)] , 
                     [math.sin(angle), math.cos(angle) * math.cos(twist), -math.cos(angle) * math.sin(twist), length * math.sin(angle)] ,
                     [0, math.sin(twist), math.cos(twist), offset] , 
                     [0, 0, 0, 1]]
+
     return A
 
 
@@ -96,9 +106,9 @@ def get_euler_angles_from_T(T):
 
     @return     The euler angles from T.
     """
-    yaw = math.atan2(T(1,0),-T(2,0))
-    pitch = math.acos(T(0,0))
-    roll = math.atan2(T(0,1),T(0,2))
+    yaw = math.atan2(T[1,0],-T[2,0])
+    pitch = math.acos(T[0,0])
+    roll = math.atan2(T[0,1],T[0,2])
     
     return yaw, pitch, roll
 
@@ -124,35 +134,35 @@ def get_pose_from_T(T):
     return pose
 
 
-# def FK_pox(joint_angles, m_mat, s_lst):
-#     """!
-#     @brief      Get a  representing the pose of the desired link
+def FK_pox(joint_angles, m_mat, s_lst):
+    """!
+    @brief      Get a  representing the pose of the desired link
 
-#                 TODO: implement this function, Calculate forward kinematics for rexarm using product of exponential
-#                 formulation return a 4x4 homogeneous matrix representing the pose of the desired link
+                TODO: implement this function, Calculate forward kinematics for rexarm using product of exponential
+                formulation return a 4x4 homogeneous matrix representing the pose of the desired link
 
-#     @param      joint_angles  The joint angles
-#                 m_mat         The M matrix
-#                 s_lst         List of screw vectors
+    @param      joint_angles  The joint angles
+                m_mat         The M matrix
+                s_lst         List of screw vectors
 
-#     @return     a 4x4 homogeneous matrix representing the pose of the desired link
-#     """
-#     pass
+    @return     a 4x4 homogeneous matrix representing the pose of the desired link
+    """
+    pass
 
 
-# def to_s_matrix(w, v):
-#     """!
-#     @brief      Convert to s matrix.
+def to_s_matrix(w, v):
+    """!
+    @brief      Convert to s matrix.
 
-#     TODO: implement this function
-#     Find the [s] matrix for the POX method e^([s]*theta)
+    TODO: implement this function
+    Find the [s] matrix for the POX method e^([s]*theta)
 
-#     @param      w     { parameter_description }
-#     @param      v     { parameter_description }
+    @param      w     { parameter_description }
+    @param      v     { parameter_description }
 
-#     @return     { description_of_the_return_value }
-#     """
-#     pass
+    @return     { description_of_the_return_value }
+    """
+    pass
 
 
 def IK_geometric(dh_params, pose):
