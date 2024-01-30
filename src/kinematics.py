@@ -61,9 +61,10 @@ def FK_dh(dh_params, joint_angles, link):
         twist = curr[2]
         offset = curr[3]
         
-        A = get_transform_from_dh(length,twist,offset,angle)
-        A = np.dot(joint_angles[i], A)
-        T *= A
+        A = get_transform_from_dh(length, twist, offset, angle + joint_angles[i])
+
+        # Get updated T matrix using transformation matrix at link A
+        T = np.dot(A,T)
     
     return T
     
@@ -88,9 +89,9 @@ def get_transform_from_dh(a, alpha, d, theta):
     angle = theta
 
     A = [[math.cos(angle), -math.sin(angle) * math.cos(twist), math.sin(angle) * math.sin(twist), length * math.cos(angle)] , 
-                    [math.sin(angle), math.cos(angle) * math.cos(twist), -math.cos(angle) * math.sin(twist), length * math.sin(angle)] ,
-                    [0, math.sin(twist), math.cos(twist), offset] , 
-                    [0, 0, 0, 1]]
+         [math.sin(angle), math.cos(angle) * math.cos(twist), -math.cos(angle) * math.sin(twist), length * math.sin(angle)] ,
+         [0, math.sin(twist), math.cos(twist), offset] , 
+         [0, 0, 0, 1]]
 
     return A
 
@@ -106,11 +107,11 @@ def get_euler_angles_from_T(T):
 
     @return     The euler angles from T.
     """
-    yaw = math.atan2(T[1,0],-T[2,0])
-    pitch = math.acos(T[0,0])
-    roll = math.atan2(T[0,1],T[0,2])
+    phi = math.atan2(T[1,0],-T[2,0])
+    theta = math.acos(T[0,0])
+    psi = math.atan2(T[0,1],T[0,2])
     
-    return yaw, pitch, roll
+    return phi, theta, psi
 
 
 def get_pose_from_T(T):
@@ -127,9 +128,9 @@ def get_pose_from_T(T):
     y = T[3,1]
     z = T[3,3]
 
-    yaw, pitch, roll = get_euler_angles_from_T(T)
+    phi, theta, psi = get_euler_angles_from_T(T)
 
-    pose = [x,y,z,yaw,pitch,roll]
+    pose = [x,y,z,phi,theta,psi]
 
     return pose
 
