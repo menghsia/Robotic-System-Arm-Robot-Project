@@ -64,8 +64,7 @@ points_world = np.array([[-450, 425, 0.0], [-450, 175, 0.0], [-450, -125, 0.0],
 #world points in camera frame (mm) (not homogeneous)
 points_ones = np.ones(depths_camera.size)
 
-points_camera = np.transpose(depths_camera *
-    np.dot(K_inv, np.transpose(np.column_stack((points_uv, points_ones)))))
+points_camera = np.transpose(depths_camera * np.dot(K_inv, np.transpose(np.column_stack((points_uv, points_ones)))))
 
 # NOTE this might be physically measured extrinsic matrix
 A_ideal = np.matrix([[1., 0, 0, -14], 
