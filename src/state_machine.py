@@ -59,34 +59,34 @@ class StateMachine():
         #                                            [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1],
         #                                            [100,450,-961,1], [-250,250, -999,1], [0,0,-1041,1], [200,200,-1003,1]])
         
-        # for tags 1-4, including all corners X,Y,Z mm world coords, 24x4 
-        self.apriltags_board_positions = np.array([[-150,100, -1050, 1], [-165, 85, -1053, 1], [-135, 85, -1052,1], [-135, 115, -1048, 1], [-165, 115, -1046,1],
-                                            [350,100, -1044, 1], [335, 85, -1047, 1], [365, 85, -1048, 1], [365, 115, -1041,1], [335, 115, -1040,1],
-                                            [350,400, -990, 1], [335, 385, -992,1], [365, 385, -991,1], [365, 415, -986,1], [335, 415, -986,1],
-                                            [-150,400,-996, 1], [-165, 385, -998,1], [-135, 385, -998,1], [-135, 415, -992,1], [-165, 415, -993,1]])
+        # for tags 1-4, including all corners X,Y,Z mm world coords, 20x4 !!!make depth 0
+        self.apriltags_board_positions = np.array([[-250,-25, 0, 1],[250,-25, 0, 1],[250,275, 0, 1],[-250, 275,0, 1]])
 
-        self.apriltag1_position = np.array([-250,-200, -1049, 1])
-
-        # self.intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
-        # self.intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
-
-        self.intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]]) # use this with new UVD calc, same as control station
+        self.intrinsicMat = np.array([[977.9586, 0, 629.698],[0, 968.400, 363.818],[0, 0, 1]]) # use this with new UVD calc, same as control station
         self.K_inv = np.linalg.inv(self.intrinsicMat)
-        # intrinsicMat = np.array([[904.6,0,635.982, 0],[0,905.29,353.06, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970 
-        # self.extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])  # worked before
 
-        self.extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004, 0.9797,970],[0,0,0,1]])  #!!! signs are inconsistent with above use with new uvd calc
+        self.extrinsicMat = np.array([[1, 0, 0, 0],[0, -0.9797, -0.2004, 190],[0, 0.2004, -0.9797, 970],[0,0,0,1]])  #!!! signs are inconsistent with above use with new uvd calc
         self.extrinsicMat_inv = np.linalg.inv(self.extrinsicMat)
 
-        points_xy_w = np.delete(self.apriltags_board_positions, [2,3], axis=1)  # stores only 1st and 2nd cols of apriltag board pos
-        depths_camera = np.transpose(np.delete(self.apriltags_board_positions, (0, 1,3), axis=1)) # stores only 3rd col of points_uvd
+        points_xyz_w =  self.apriltags_board_positions.transpose() # must be 4x20
+        points_xyz_c = np.dot(self.extrinsicMat, points_xyz_w)  # must be 4x20
+
+        # pdb.set_trace()
+
+        projection_mat = np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0]])
+        projection_times_xyz_c = np.dot(projection_mat, points_xyz_c)
+
+        # pdb.set_trace()
+
+        depths_camera = np.transpose(np.delete(points_xyz_c.transpose(), (0, 1,3), axis=1)) # stores only 3rd col
         points_ones = np.ones(depths_camera.size)
 
-        points_xy_c = np.transpose((1 / depths_camera) * np.dot(self.intrinsicMat,np.transpose(np.column_stack((points_xy_w, points_ones)))))
-        points_uv = np.dot(self.extrinsicMat,  points_xy_c)
-
-        # print("pointsuv shape: ", points_uv.shape)
         # pdb.set_trace()
+
+        points_uv = np.transpose((1 / depths_camera) * np.dot(self.intrinsicMat, projection_times_xyz_c))
+
+        # pdb.set_trace()
+        # print("pointsuv shape: ", points_uv.shape)
         self.dest_points = points_uv[:, :2] #IN UV
         print("self.dest_points shape: ", self.dest_points.shape)
         # pdb.set_trace()

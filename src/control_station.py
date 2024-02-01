@@ -244,8 +244,8 @@ class Gui(QMainWindow):
             self.ui.rdoutMousePixels.setText("(%.0f,%.0f,%.0f)" %
                                              (pt.x(), pt.y(), z))
             
-            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
-            # intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
+            # intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
+            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
 
             # intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1000]]) / 970     # factory intrinsic matrix
             # extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
