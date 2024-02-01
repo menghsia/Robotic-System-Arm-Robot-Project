@@ -167,6 +167,9 @@ def to_s_matrix(w, v):
     """
     pass
 
+def euler2mat(phi,theta,psi):
+    mat = 1
+    return mat
 
 def IK_geometric(dh_params, pose):
     """!
@@ -180,4 +183,87 @@ def IK_geometric(dh_params, pose):
     @return     All four possible joint configurations in a numpy array 4x4 where each row is one possible joint
                 configuration
     """
-    pass
+    x = pose[0]
+    y = pose[1]
+    z = pose[2]
+    phi = pose[4]
+    theta = pose[5]
+    psi = pose[6]
+
+    link = 5
+    for i in range(link):
+        curr = dh_params[i]
+        angle[i] = curr[0]
+        offset[i] = curr[1]
+        length[i] = curr[2]
+        twist[i] = curr[3]
+
+    joint_configs = np.zeros(4)
+    wrist = []
+
+    if ((x**2 + y**2 + z**2) > 400):
+        print("This pose is not reachable")
+
+    # Wrist Position
+    wrist = np.transpose([x,y,z]) - 0.174 * euler2mat(phi, theta, psi) * np.transpose([0,0,1])
+    xc = wrist[0]
+    yc = wrist[1]
+    zc = wrist[2]
+
+    # Config One: Down, Up, Sum
+    J11 = np.atan2(yc,xc)
+
+    r2 = xc**2 + yc**2
+    s2 = zc - offset[0]
+
+    J12 = 
+    J13 = 
+    J14 = 
+
+    configOne = [J11,J12,J13,J14]
+    
+    # Config Two: Up, Down, Sum
+    J21 = np.atan2(yc,xc)
+
+    r2 = xc**2 + yc**2
+    s2 = zc - offset[0]
+
+    J22 = 
+    J23 = 
+    J24 = 
+
+    configTwo = [J21,J22,J23,J24]
+
+    # Config Three: Sum, Down, Up
+    J31 = np.atan2(yc,xc)
+
+    r2 = xc**2 + yc**2
+    s2 = zc - offset[0]
+
+    J32 = 
+    J33 = 
+    J34 = 
+
+    configThree = [J31,J32,J33,J34]
+
+    # Config Four: Sum, Up, Down
+    J41 = np.atan2(yc,xc)
+
+    r2 = xc**2 + yc**2
+    s2 = zc - offset[0]
+
+    J42 = 
+    J43 = 
+    J44 = 
+
+    configFour = [J41,J42,J43,J44]
+        
+    # Put the four configs into one array
+    joint_configs[0] = configOne
+    joint_configs[1] = configTwo
+    joint_configs[2] = configThree
+    joint_configs[3] = configFour
+
+    return joint_configs
+
+    
