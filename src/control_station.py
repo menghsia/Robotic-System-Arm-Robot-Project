@@ -5,6 +5,8 @@ Main GUI for Arm lab
 import os, sys
 script_path = os.path.dirname(os.path.realpath(__file__))
 
+import pdb
+
 import argparse
 import cv2
 import numpy as np
@@ -242,12 +244,12 @@ class Gui(QMainWindow):
             self.ui.rdoutMousePixels.setText("(%.0f,%.0f,%.0f)" %
                                              (pt.x(), pt.y(), z))
             
-            # intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
-            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
+            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
+            # intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
 
             # intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1000]]) / 970     # factory intrinsic matrix
-            extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
-            # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]]) # original v2
+            # extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
+            extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]]) # original v2
             # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
             
             K_inv = np.linalg.inv(intrinsicMat)
@@ -274,11 +276,23 @@ class Gui(QMainWindow):
                 point_uvd = np.array([[pt.x(), pt.y(), z]])
                 point_uv = np.delete(point_uvd, -1, axis=1)
                 depth_camera = np.transpose(np.delete(point_uvd, (0, 1), axis=1))
+                # depth_camera
                 point_ones = np.ones(depth_camera.size)
 
-                point_uv_dash = np.dot(homography_mat, point_uv)
+                point_uv_1 = np.array([point_uv[0][0], point_uv[0][1], 1.])
+
+                # pdb.set_trace()
+
+                point_uv_dash = np.dot(homography_mat, point_uv_1)
+                point_uv_dash = np.reshape(point_uv_dash, [3,1])
+                print("points_uv_dash: ", point_uv_dash, point_uv_dash.shape)
                 # point_uvd_dash = np.array([[point_uv_dash[0][0],point_uv_dash[0][1], ]])
-                point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones)))))
+
+                # pdb.set_trace()
+
+                # point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones)))))
+                point_camera = np.transpose(depth_camera * np.dot(K_inv, point_uv_dash))
+
                 points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera, point_ones))))
                 xyz_w = points_transformed_ideal
 

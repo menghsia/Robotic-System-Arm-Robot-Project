@@ -265,10 +265,10 @@ class ImageListener(Node):
             print(e)
 
         if not (self.camera.cam_homography_matrix.size == 0):
-            # print("Homography matrix empty")
-            # print("Applying homography correction to image")
+            print("Applying homography correction to image")
             # print("cv_image.shape[1], cv_image.shape[0]: ", cv_image.shape[1], cv_image.shape[0]) # 1280 720
             cv_image = cv2.warpPerspective(cv_image, self.camera.cam_homography_matrix, (cv_image.shape[1], cv_image.shape[0]), flags=cv2.INTER_LINEAR)
+            print("warpPerspective checkpoint")
 
         self.camera.VideoFrame = cv_image
 

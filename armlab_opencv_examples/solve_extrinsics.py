@@ -212,9 +212,7 @@ def recover_homogeneous_transform_svd(m, d):
 
 
 # calculate A with naive extrinsic matrix (?physically measured one)
-points_transformed_ideal = np.dot(
-    np.linalg.inv(A_ideal), np.transpose(np.column_stack(
-        (points_camera, points_ones))))
+points_transformed_ideal = np.dot(np.linalg.inv(A_ideal), np.transpose(np.column_stack((points_camera, points_ones))))
 
 #OpenCV SolvePNP calculate extrinsic matrix A
 A_pnp = recover_homogenous_transform_pnp(

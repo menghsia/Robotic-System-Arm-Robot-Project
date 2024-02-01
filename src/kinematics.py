@@ -54,6 +54,7 @@ def FK_dh(dh_params, joint_angles, link):
     T = np.eye(4)
     
     # Construct transformation matrix for link
+    link = 5
     for i in range(link):
         curr = dh_params[i]
 
@@ -62,14 +63,10 @@ def FK_dh(dh_params, joint_angles, link):
         length = curr[2]
         twist = curr[3]
         
-        
         A = get_transform_from_dh(length, twist, offset, angle + joint_angles[i])
 
         # Get updated T matrix using transformation matrix at link A
-
-        T = np.matmul(A,T)
-        print('T at Link: ', i)
-        print(T)
+        T = np.matmul(T,A)
     
     return T
     
@@ -129,8 +126,8 @@ def get_pose_from_T(T):
 
     @return     The pose vector from T.
     """
-    x = T[0,3]
-    y = T[1,3]
+    x = -T[0,3]
+    y = -T[1,3]
     z = T[2,3]
 
     phi, theta, psi = get_euler_angles_from_T(T)

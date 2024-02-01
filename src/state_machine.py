@@ -68,22 +68,28 @@ class StateMachine():
         self.apriltag1_position = np.array([-250,-200, -1049, 1])
 
         # self.intrinsicMat = np.array([[977.9586,0,629.698, 0],[0,968.400,363.818, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970
+        # self.intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
+
         self.intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]]) # use this with new UVD calc, same as control station
         self.K_inv = np.linalg.inv(self.intrinsicMat)
         # intrinsicMat = np.array([[904.6,0,635.982, 0],[0,905.29,353.06, 0],[0,0,1000, 0], [0,0,0,1000]]) / 970 
-        # self.extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
+        # self.extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])  # worked before
 
         self.extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004, 0.9797,970],[0,0,0,1]])  #!!! signs are inconsistent with above use with new uvd calc
+        self.extrinsicMat_inv = np.linalg.inv(self.extrinsicMat)
 
-        points_xy = np.delete(self.apriltags_board_positions, -1, axis=1)  # stores only 1st and 2nd cols of apriltag board pos
-        depths_camera = np.transpose(np.delete(self.apriltags_board_positions, (0, 1), axis=1)) # stores only 3rd col of points_uvd
+        points_xy_w = np.delete(self.apriltags_board_positions, [2,3], axis=1)  # stores only 1st and 2nd cols of apriltag board pos
+        depths_camera = np.transpose(np.delete(self.apriltags_board_positions, (0, 1,3), axis=1)) # stores only 3rd col of points_uvd
         points_ones = np.ones(depths_camera.size)
 
-        pdb.set_trace()
+        points_xy_c = np.transpose((1 / depths_camera) * np.dot(self.intrinsicMat,np.transpose(np.column_stack((points_xy_w, points_ones)))))
+        points_uv = np.dot(self.extrinsicMat,  points_xy_c)
 
-        points_uv = np.transpose((1 / depths_camera) * np.dot(self.intrinsicMat,np.transpose(np.column_stack((points_xy, points_ones)))))
-        print("pointsuv shape: ", points_uv.shape)
-        self.dest_points = points_uv[:2, :] #IN UV
+        # print("pointsuv shape: ", points_uv.shape)
+        # pdb.set_trace()
+        self.dest_points = points_uv[:, :2] #IN UV
+        print("self.dest_points shape: ", self.dest_points.shape)
+        # pdb.set_trace()
 
         # ___________
         # P = np.dot(self.intrinsicMat, self.extrinsicMat) # 4x4
@@ -265,15 +271,19 @@ class StateMachine():
         src_pts = np.asanyarray(apriltag_centers_corners_cv) # in uv world coords in the original plane, 
         print("shape of src points: ", src_pts.shape, " src_pts: ", src_pts)
 
+        # pdb.set_trace()
+
         dest_pts = self.dest_points # needs to be 24x2 in UV
         
-        
+        # pdb.set_trace()
+
         # print("calibrate func src_pts: ", src_pts)
-        print("dest_pts: ", dest_pts)
+        print("dest_pts shape: ", dest_pts.shape)
+
 
         # self.homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
-        print(type(self.camera.cam_homography_matrix))
+        print(self.camera.cam_homography_matrix)
         
         self.world_coord_calib_flag = True
         self.status_message = "Calibration - Completed Calibration"
