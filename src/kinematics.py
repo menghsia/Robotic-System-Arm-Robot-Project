@@ -228,7 +228,7 @@ def IK_geometric(dh_params, pose):
     r2 = xc**2 + yc**2
     s2 = zc - offset[0]
 
-    J22 = 
+    J22 = phi
     J23 = 
     J24 = 
 
@@ -240,9 +240,9 @@ def IK_geometric(dh_params, pose):
     r2 = xc**2 + yc**2
     s2 = zc - offset[0]
 
-    J32 = 
-    J33 = 
-    J34 = 
+    J32 = 1
+    J33 = 1
+    J34 = 1
 
     configThree = [J31,J32,J33,J34]
 
@@ -252,9 +252,9 @@ def IK_geometric(dh_params, pose):
     r2 = xc**2 + yc**2
     s2 = zc - offset[0]
 
-    J42 = 
-    J43 = 
-    J44 = 
+    J42 = 1
+    J43 = 1
+    J44 = 1
 
     configFour = [J41,J42,J43,J44]
         
