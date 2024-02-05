@@ -17,7 +17,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image, CameraInfo
 from apriltag_msgs.msg import *
 from cv_bridge import CvBridge, CvBridgeError
-
+import pdb
 
 class Camera():
     """!
@@ -48,6 +48,8 @@ class Camera():
         self.grid_x_points = np.arange(-450, 500, 50)
         self.grid_y_points = np.arange(-175, 525, 50)
         self.grid_points = np.array(np.meshgrid(self.grid_x_points, self.grid_y_points))
+        self.grid_points_flattened = np.vstack([self.grid_points[0].ravel(), self.grid_points[1].ravel()])
+
         self.tag_detections = np.array([])
         self.tag_locations = [[-250, -25], [250, -25], [250, 275]]
         """ block info """
@@ -199,8 +201,45 @@ class Camera():
                     and draw on self.GridFrame the grid intersection points from self.grid_points
                     (hint: use the cv2.circle function to draw circles on the image)
         """
-        pass
-     
+        # self.grid_points  # nx2 for x,y
+        intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]]) 
+        extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
+        print("self.grid_points shape: ", self.grid_points.shape)
+        print(self.grid_points_flattened.shape)
+        # pdb.set_trace()
+
+        newrowz =np.zeros((1,266))
+        newrow_ones = np.ones((1,266))
+        xyz_one_array = np.vstack([self.grid_points_flattened, newrowz])
+        xyz_one_array = np.vstack([xyz_one_array, newrow_ones]) # 4x266
+        Hprod = np.dot(extrinsicMat, xyz_one_array)  # 3x266
+        Imat = np.eye(3)
+        column_to_be_added = np.array([[0], [0], [0]])
+        Imat = np.hstack([Imat, column_to_be_added])
+        P = (1 / 970) * np.dot(intrinsicMat, Imat)
+        uv_mat = np.dot(P, Hprod)  # use only first 2 rows of this to draw on opencv
+
+        # points_xyz_c = np.dot(self.extrinsicMat, points_xyz_w)  # must be 4x20
+        # projection_mat = np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0]])
+        # projection_times_xyz_c = np.dot(projection_mat, points_xyz_c)
+        # depths_camera = np.transpose(np.delete(points_xyz_c.transpose(), (0, 1,3), axis=1)) # stores only 3rd col
+        # points_ones = np.ones(depths_camera.size)
+        # points_uv = np.transpose((1 / depths_camera) * np.dot(self.intrinsicMat, projection_times_xyz_c))
+
+
+        if not (self.cam_homography_matrix.size == 0):
+            uv_mat = np.dot(self.cam_homography_matrix, uv_mat)
+
+        modified_image = self.VideoFrame.copy() #NDArray[uint8]
+        for idx in range(uv_mat.shape[1]):
+            center_x = uv_mat[0,idx]
+            center_y = uv_mat[1,idx]
+            center_coords = (int(center_x), int(center_y))
+            modified_image = cv2.circle(modified_image, center_coords, radius=5, color=(0,0,255), thickness=-1) # for the center
+
+        self.GridFrame = modified_image
+
+
     def drawTagsInRGBImage(self, msg):
         """
         @brief      Draw tags from the tag detection

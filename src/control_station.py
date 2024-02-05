@@ -244,12 +244,11 @@ class Gui(QMainWindow):
             self.ui.rdoutMousePixels.setText("(%.0f,%.0f,%.0f)" %
                                              (pt.x(), pt.y(), z))
             
-            # intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1000]]) / 970
-            intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
-
-            # intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1000]]) / 970     # factory intrinsic matrix
+            
+            #intrinsicMat = np.array([[977.9586,0,629.698],[0,968.400,363.818],[0,0,1]])
+            intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]])     # factory intrinsic matrix
             # extrinsicMat = np.array([[1,0,0,0],[0,0.9797,-0.2004,190],[0,0.2004,0.9797,970],[0,0,0,1]])
-            extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]]) # original v2
+            extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]]) # original v2
             # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,-0.2004,0.19],[0,0.2004,-0.9797,.970],[0,0,0,1]])
             
             K_inv = np.linalg.inv(intrinsicMat)
@@ -270,7 +269,7 @@ class Gui(QMainWindow):
             # world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
             # xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
-            if not (self.camera.cam_homography_matrix.size == 0):
+            if not (self.camera.cam_homography_matrix.size == 0):  # if NOT calibrated
 
                 homography_mat = self.camera.cam_homography_matrix
                 point_uvd = np.array([[pt.x(), pt.y(), z]])
@@ -283,9 +282,10 @@ class Gui(QMainWindow):
 
                 # pdb.set_trace()
 
-                point_uv_dash = np.dot(homography_mat, point_uv_1)
+                point_uv_dash = np.dot(np.linalg.inv(homography_mat), point_uv_1)
+                # point_uv_dash = np.dot(homography_mat, point_uv_1)
                 point_uv_dash = np.reshape(point_uv_dash, [3,1])
-                print("points_uv_dash: ", point_uv_dash, point_uv_dash.shape)
+                #print("points_uv_dash: ", point_uv_dash, point_uv_dash.shape)
                 # point_uvd_dash = np.array([[point_uv_dash[0][0],point_uv_dash[0][1], ]])
 
                 # pdb.set_trace()

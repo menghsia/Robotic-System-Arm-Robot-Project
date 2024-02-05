@@ -62,7 +62,8 @@ class StateMachine():
         # for tags 1-4, including all corners X,Y,Z mm world coords, 20x4 !!!make depth 0
         self.apriltags_board_positions = np.array([[-250,-25, 0, 1],[250,-25, 0, 1],[250,275, 0, 1],[-250, 275,0, 1]])
 
-        self.intrinsicMat = np.array([[977.9586, 0, 629.698],[0, 968.400, 363.818],[0, 0, 1]]) # use this with new UVD calc, same as control station
+        #self.intrinsicMat = np.array([[977.9586, 0, 629.698],[0, 968.400, 363.818],[0, 0, 1]]) # use this with new UVD calc, same as control station
+        self.intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]]) #factory intrinsic matrix
         self.K_inv = np.linalg.inv(self.intrinsicMat)
 
         self.extrinsicMat = np.array([[1, 0, 0, 0],[0, -0.9797, -0.2004, 190],[0, 0.2004, -0.9797, 970],[0,0,0,1]])  #!!! signs are inconsistent with above use with new uvd calc
@@ -70,11 +71,13 @@ class StateMachine():
 
         points_xyz_w =  self.apriltags_board_positions.transpose() # must be 4x20
         points_xyz_c = np.dot(self.extrinsicMat, points_xyz_w)  # must be 4x20
+        # points_xyz_c = self.extrinsicMat @ np.transpose(points_xyz_w ) # must be 4x20
 
         # pdb.set_trace()
 
         projection_mat = np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0]])
         projection_times_xyz_c = np.dot(projection_mat, points_xyz_c)
+        # projection_times_xyz_c = projection_mat @ points_xyz_c
 
         # pdb.set_trace()
 
@@ -263,7 +266,8 @@ class StateMachine():
             print(type(point_pair_list))
             for point_pair in point_pair_list:
                 apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # UV. To get depth, use the apriltags 3rd col
-
+        
+        
         # NOTE update___________
         # K_inv = np.linalg.inv(intrinsicMat)  # use self.K_inv
         # ______________________
@@ -273,7 +277,14 @@ class StateMachine():
 
         # pdb.set_trace()
 
-        dest_pts = self.dest_points # needs to be 24x2 in UV
+        #dest_pts = self.dest_points # old dest_pts
+
+        image = self.camera.VideoFrame.copy()
+        margin = (image.shape[1] - 20/13*(image.shape[0]-20))/2
+        dest_pts = np.array((0.25*(image.shape[1]-2*margin)+margin,10/13*(image.shape[0]-20)+10, 
+                             0.75*(image.shape[1]-2*margin)+margin,10/13*(image.shape[0]-20)+10, 
+                             0.75*(image.shape[1]-2*margin)+margin,4/13*(image.shape[0]-20)+10,0.25*(image.shape[1]-2*margin)+margin, 
+                             4/13*(image.shape[0]-20)+10)).reshape(4,2)
         
         # pdb.set_trace()
 
