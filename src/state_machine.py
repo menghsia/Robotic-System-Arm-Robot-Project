@@ -10,6 +10,7 @@ import sys
 import cv2
 import pdb
 
+
 class StateMachine():
     """!
     @brief      This class describes a state machine.
@@ -66,25 +67,24 @@ class StateMachine():
         self.intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]]) #factory intrinsic matrix
         self.K_inv = np.linalg.inv(self.intrinsicMat)
 
+        
+
+
         self.extrinsicMat = np.array([[1, 0, 0, 0],[0, -0.9797, -0.2004, 190],[0, 0.2004, -0.9797, 970],[0,0,0,1]])  #!!! signs are inconsistent with above use with new uvd calc
         self.extrinsicMat_inv = np.linalg.inv(self.extrinsicMat)
 
         points_xyz_w =  self.apriltags_board_positions.transpose() # must be 4x20
         points_xyz_c = np.dot(self.extrinsicMat, points_xyz_w)  # must be 4x20
-        # points_xyz_c = self.extrinsicMat @ np.transpose(points_xyz_w ) # must be 4x20
 
-        # pdb.set_trace()
 
         projection_mat = np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0]])
         projection_times_xyz_c = np.dot(projection_mat, points_xyz_c)
         # projection_times_xyz_c = projection_mat @ points_xyz_c
 
-        # pdb.set_trace()
 
         depths_camera = np.transpose(np.delete(points_xyz_c.transpose(), (0, 1,3), axis=1)) # stores only 3rd col
         points_ones = np.ones(depths_camera.size)
 
-        # pdb.set_trace()
 
         points_uv = np.transpose((1 / depths_camera) * np.dot(self.intrinsicMat, projection_times_xyz_c))
 
@@ -249,6 +249,24 @@ class StateMachine():
         sys.stdout.flush()
         self.next_state = "idle"
 
+    def recover_homogenous_transform_pnp(self, image_points, world_points, K):
+        '''
+        Use SolvePnP to find the rigidbody transform representing the camera pose in
+        world coordinates (not working)
+        '''
+        D = np.array([0.1615992933511734, -0.5091497302055359, -0.0018777191871777177,0.0004640672996174544, 0.45967552065849304])
+        distCoeffs = D
+        print("world_points:",world_points)
+        print("image_points:",image_points)
+        [_, R_exp, t] = cv2.solvePnP(world_points,
+                                 image_points,
+                                 K,
+                                 distCoeffs,
+                                 flags=cv2.SOLVEPNP_ITERATIVE)
+        R, _ = cv2.Rodrigues(R_exp)
+        return np.row_stack((np.column_stack((R, t)), (0, 0, 0, 1)))
+
+
     def calibrate(self, camera_ids_tags):
         """!
         camera_ids_tags: includes center, 4 corners
@@ -259,13 +277,19 @@ class StateMachine():
 
         """TODO Perform camera calibration routine here"""
         # input1 = input("Enter calibration array: ")  
-        print(camera_ids_tags) 
+
         apriltag_centers_corners_cv =[]
+        pnp_points_uv=[]
         for tag_id, point_pair_list in camera_ids_tags.items():
             print("TEST tag id order: ", tag_id)
             print(type(point_pair_list))
             for point_pair in point_pair_list:
-                apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # UV. To get depth, use the apriltags 3rd col
+                if tag_id != 5:
+                    apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # UV. To get depth, use the apriltags 3rd col
+            for point_pair in point_pair_list:
+                pnp_points_uv=np.append(pnp_points_uv, [point_pair[0], point_pair[1]])
+            
+            
         
         
         # NOTE update___________
@@ -273,11 +297,7 @@ class StateMachine():
         # ______________________
 
         src_pts = np.asanyarray(apriltag_centers_corners_cv) # in uv world coords in the original plane, 
-        print("shape of src points: ", src_pts.shape, " src_pts: ", src_pts)
 
-        # pdb.set_trace()
-
-        #dest_pts = self.dest_points # old dest_pts
 
         image = self.camera.VideoFrame.copy()
         margin = (image.shape[1] - 20/13*(image.shape[0]-20))/2
@@ -285,6 +305,22 @@ class StateMachine():
                              0.75*(image.shape[1]-2*margin)+margin,10/13*(image.shape[0]-20)+10, 
                              0.75*(image.shape[1]-2*margin)+margin,4/13*(image.shape[0]-20)+10,0.25*(image.shape[1]-2*margin)+margin, 
                              4/13*(image.shape[0]-20)+10)).reshape(4,2)
+        
+        #############
+        
+        print("pnp_points_uv:",pnp_points_uv)
+        pnp_points_uv=pnp_points_uv.reshape((4,2))
+        pnp_points_world=np.array([[-250,-25, 0],[250,-25, 0],[250,275, 0],[-250, 275,0]])
+        #[325,150,0]
+        depths_camera = np.transpose(np.delete(src_pts, (0, 1), axis=1))
+        points_ones = np.ones(depths_camera.size)
+        A_pnp = self.recover_homogenous_transform_pnp(pnp_points_uv.astype(np.float32), pnp_points_world.astype(np.float32), self.intrinsicMat)
+        
+        self.camera.cam_extrinsic_maxtrix = A_pnp
+        #points_camera = np.transpose(depths_camera * np.dot(self.K_inv, np.transpose(np.column_stack((pnp_points_uv, points_ones)))))
+        #points_transformed_pnp = np.dot(np.linalg.inv(A_pnp), np.transpose(np.column_stack((points_camera, points_ones))))
+
+        ##########
         
         # pdb.set_trace()
 
