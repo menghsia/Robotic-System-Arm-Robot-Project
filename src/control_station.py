@@ -286,14 +286,12 @@ class Gui(QMainWindow):
                 #point_uv_1 = np.transpose(np.array([point_uv[0][0], point_uv[0][1], 1.]))
                 
                 point_uv_dash = np.dot(np.linalg.inv(homography_mat), point_uv_1)
-                depth_camera = self.camera.DepthFrameRaw[int(point_uv_dash[1])][int(point_uv_dash[0])]
-                
 
                 # point_uv_dash = np.reshape(point_uv_dash, [3,1])
                 point_uv_dash[0] = point_uv_dash[0]/point_uv_dash[2]
                 point_uv_dash[1] = point_uv_dash[1]/point_uv_dash[2]
                 point_uv_dash[2] = point_uv_dash[2]/point_uv_dash[2]
-
+                depth_camera = self.camera.DepthFrameRaw[int(point_uv_dash[1])][int(point_uv_dash[0])]
                 # point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones)))))
                 #point_camera = np.transpose(depth_camera * np.dot(K_inv, point_uv_dash))
                 point_camera = depth_camera * (np.dot(K_inv,point_uv_dash))

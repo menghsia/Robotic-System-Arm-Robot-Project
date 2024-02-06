@@ -126,8 +126,8 @@ def get_pose_from_T(T):
 
     @return     The pose vector from T.
     """
-    x = -T[0,3]
-    y = -T[1,3]
+    x = T[0,3]
+    y = T[1,3]
     z = T[2,3]
 
     phi, theta, psi = get_euler_angles_from_T(T)

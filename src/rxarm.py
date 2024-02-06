@@ -83,7 +83,7 @@ class RXArm(InterbotixManipulatorXS):
         self.effort_fb = None
         # DH Params
 
-        self.dh_params = [[1.57, 0.104, 0 ,1.57], [1.57, 0, 0.2057, 0], [1.57, 0, .200, 0], [0, 0, 0.065, -1.57],[0, 0, 0.088, 1.57]]
+        self.dh_params = [[1.57, 0.104, 0,-1.57], [-1.31, 0, 0.2057, 0], [1.31, 0, .200, 0], [-1.57, 0, 0, -1.57],[0, 0.175, 0, 0]]
 
         # self.dh_config_file = dh_config_file
         # if (dh_config_file is not None):
