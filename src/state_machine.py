@@ -46,7 +46,7 @@ class StateMachine():
         self.recorded_waypoints = []
         self.recorded_gripper_position = []
         self.gripper_open_flag = True
-        self.world_coord_calib_flag = False
+        
 
         # self.apriltags_board_positions = np.array([[-250,-25, -1049, 1],[250,-25, -1043, 1],[250,275, -988, 1],[-250,275,-995, 1]])  #4x2 X Y Z 1 with base link origin
         # self.apriltags_board_positions = np.array([[-250,-200, -1049, 1],[250,-200, -1043, 1],[250,100, -988, 1],[-250,100,-995, 1]])  #4x2 X Y Z 1 with center board origin
@@ -284,7 +284,7 @@ class StateMachine():
             print("TEST tag id order: ", tag_id)
             print(type(point_pair_list))
             for point_pair in point_pair_list:
-                if tag_id != 5:
+                if tag_id < 5:
                     apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # UV. To get depth, use the apriltags 3rd col
             for point_pair in point_pair_list:
                 pnp_points_uv=np.append(pnp_points_uv, [point_pair[0], point_pair[1]])
@@ -309,13 +309,15 @@ class StateMachine():
         #############
         
         print("pnp_points_uv:",pnp_points_uv)
+        # pnp_points_uv=pnp_points_uv.reshape((6,2))
         pnp_points_uv=pnp_points_uv.reshape((4,2))
+        # pnp_points_world=np.array([[-250,-25, 0],[250,-25, 0],[250,275, 0],[-250, 275,0],[0,175,150], [-350, 150, 100]])
         pnp_points_world=np.array([[-250,-25, 0],[250,-25, 0],[250,275, 0],[-250, 275,0]])
-        #[325,150,0]
+        
         depths_camera = np.transpose(np.delete(src_pts, (0, 1), axis=1))
         points_ones = np.ones(depths_camera.size)
         A_pnp = self.recover_homogenous_transform_pnp(pnp_points_uv.astype(np.float32), pnp_points_world.astype(np.float32), self.intrinsicMat)
-        
+        print("A_pnp:",A_pnp)
         self.camera.cam_extrinsic_maxtrix = A_pnp
         #points_camera = np.transpose(depths_camera * np.dot(self.K_inv, np.transpose(np.column_stack((pnp_points_uv, points_ones)))))
         #points_transformed_pnp = np.dot(np.linalg.inv(A_pnp), np.transpose(np.column_stack((points_camera, points_ones))))
@@ -332,7 +334,7 @@ class StateMachine():
         self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         print(self.camera.cam_homography_matrix)
         
-        self.world_coord_calib_flag = True
+        self.camera.world_coord_calib_flag = True
         self.status_message = "Calibration - Completed Calibration"
 
     """ TODO """

@@ -62,6 +62,7 @@ class Camera():
 
         self.cam_homography_matrix = np.array([])
         self.cam_extrinsic_maxtrix = 0
+        self.world_coord_calib_flag = False
 
     def processVideoFrame(self):
         """!
@@ -205,11 +206,11 @@ class Camera():
         """
         # self.grid_points  # nx2 for x,y
         intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]]) 
-        extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
-        # if self.sm.world_coord_calib_flag:
-        #     extrinsicMat = self.cam_extrinsic_maxtrix
-        # else:
-        #     extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
+        # extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
+        if self.world_coord_calib_flag:
+            extrinsicMat = self.cam_extrinsic_maxtrix
+        else:
+            extrinsicMat = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
         #print("self.grid_points shape: ", self.grid_points.shape)
         #print(self.grid_points_flattened.shape)
         # pdb.set_trace()

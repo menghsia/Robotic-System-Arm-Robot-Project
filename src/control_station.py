@@ -312,12 +312,12 @@ class Gui(QMainWindow):
                 # world_origin_tf = np.array([[1,0,0, -115], [0,1,0, -9], [0,0,1,0], [0,0,0,1]])
                 # xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
-                if self.sm.world_coord_calib_flag:
+                if self.camera.world_coord_calib_flag:
                     self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
                                         (xyz_w[0], xyz_w[1], xyz_w[2])) 
             
             else:
-                if not self.sm.world_coord_calib_flag:
+                if not self.camera.world_coord_calib_flag:
                     # self.ui.rdoutMouseWorld.setText("Uncalibrated")
                     # self.ui.rdoutMouseWorld.setText("(-,-,-)")
                     self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
