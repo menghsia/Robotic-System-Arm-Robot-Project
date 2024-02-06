@@ -168,7 +168,8 @@ def to_s_matrix(w, v):
     pass
 
 def euler2mat(phi,theta,psi):
-    mat = 1
+    from scipy.spatial.transform import Rotation
+    mat = Rotation.from_euler("zyz", (phi,theta,psi))
     return mat
 
 def IK_geometric(dh_params, pose):
@@ -203,6 +204,7 @@ def IK_geometric(dh_params, pose):
 
     if ((x**2 + y**2 + z**2) > 400):
         print("This pose is not reachable")
+        return
 
     # Wrist Position
     wrist = np.transpose([x,y,z]) - 0.174 * euler2mat(phi, theta, psi) * np.transpose([0,0,1])
@@ -210,54 +212,37 @@ def IK_geometric(dh_params, pose):
     yc = wrist[1]
     zc = wrist[2]
 
+    r2 = xc**2 + yc**2
+    s2 = zc - offset[0]
+
     # Config One: Down, Up, Sum
     J11 = np.atan2(yc,xc)
-
-    r2 = xc**2 + yc**2
-    s2 = zc - offset[0]
-
-    J12 = 1
-    J13 = 1
-    J14 = 1
-
+    J13 = np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J12 = np.atan2(yc,xc) - np.atan2(length[2]*np.sin(J13), length[1] * length[2] * np.cos(J13))
+    J14 = phi - (J13 - J12)
     configOne = [J11,J12,J13,J14]
-    
+
     # Config Two: Up, Down, Sum
     J21 = np.atan2(yc,xc)
-
-    r2 = xc**2 + yc**2
-    s2 = zc - offset[0]
-
-    J22 = phi
-    J23 = 1
-    J24 = 1
-
+    J23 = -np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J22 = np.atan2(yc,xc) - np.atan2(length[2]*np.sin(J23), length[1] * length[2] * np.cos(J23))
+    J24 = phi - (J23 - J22)
     configTwo = [J21,J22,J23,J24]
 
     # Config Three: Sum, Down, Up
     J31 = np.atan2(yc,xc)
-
-    r2 = xc**2 + yc**2
-    s2 = zc - offset[0]
-
-    J32 = 1
-    J33 = 1
-    J34 = 1
-
+    J33 = np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J34 = np.atan2(y,x) - np.atan2(length[2]*np.sin(J33), length[1] * length[2] * np.cos(J33))
+    J32 = phi - (J33 - J34)
     configThree = [J31,J32,J33,J34]
 
     # Config Four: Sum, Up, Down
     J41 = np.atan2(yc,xc)
-
-    r2 = xc**2 + yc**2
-    s2 = zc - offset[0]
-
-    J42 = 1
-    J43 = 1
-    J44 = 1
-
+    J43 = -np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J44 = np.atan2(yc,xc) - np.atan2(length[2]*np.sin(J43), length[1] * length[2] * np.cos(J43))
+    J42 = phi - (J23 - J22)
     configFour = [J41,J42,J43,J44]
-        
+   
     # Put the four configs into one array
     joint_configs[0] = configOne
     joint_configs[1] = configTwo
