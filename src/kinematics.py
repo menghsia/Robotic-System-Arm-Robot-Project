@@ -187,19 +187,25 @@ def IK_geometric(dh_params, pose):
     x = pose[0]
     y = pose[1]
     z = pose[2]
-    phi = pose[4]
-    theta = pose[5]
-    psi = pose[6]
+    phi = pose[3]
+    theta = pose[4]
+    psi = pose[5]
+
+    angle = []
+    offset = []
+    length = []
+    twist = []
 
     link = 5
     for i in range(link):
         curr = dh_params[i]
-        angle[i] = curr[0]
-        offset[i] = curr[1]
-        length[i] = curr[2]
-        twist[i] = curr[3]
+        print("Curr: ", curr)
+        angle.append(curr[0])
+        offset.append(curr[1])
+        length.append(curr[2])
+        twist.append(curr[3])
 
-    joint_configs = np.zeros(4)
+    joint_configs = []
     wrist = []
 
     if ((x**2 + y**2 + z**2) > 400):

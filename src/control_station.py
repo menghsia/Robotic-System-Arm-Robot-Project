@@ -115,6 +115,9 @@ class Gui(QMainWindow):
         self.ui.btnUser6.setText('Execute waypoints')
         self.ui.btnUser6.clicked.connect(partial(nxt_if_arm_init, 'execute_waypoints'))
 
+        self.ui.btnUser7.setText('Click and Grab')
+        self.ui.btnUser7.clicked.connect(partial(nxt_if_arm_init, 'clickImplementation'))
+
 
         # Sliders
         for sldr in self.joint_sliders:

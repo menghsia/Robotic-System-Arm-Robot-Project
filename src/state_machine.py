@@ -157,6 +157,9 @@ class StateMachine():
         if self.next_state == "execute_waypoints":
             self.execute_waypoints()
 
+        if self.next_state == "clickImplementation":
+            self.clickImplementation()
+
 
 
     """Functions run for each state"""
@@ -372,9 +375,9 @@ class StateMachine():
         x = 0.1
         y = 0.1
         z = 0.1
-        phi = 0
-        theta = 0
-        psi = 0
+        phi = 1.57
+        theta = 1.57
+        psi = 1.57
 
         # # Add 100mm to z position so we don't smash into board
         # z += 0.1
@@ -383,8 +386,7 @@ class StateMachine():
 
         # Get needed angles from IK
         from kinematics import IK_geometric
-        joint_configs = np.zeros(4,4)
-        joint_configs = IK_geometric(self.dh_params, pose) 
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
         print(joint_configs)
 
         # # Move to desired position (+100mm in Z)
