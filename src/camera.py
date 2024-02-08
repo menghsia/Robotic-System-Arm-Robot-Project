@@ -37,6 +37,7 @@ class Camera():
         self.DepthFrameHSV = np.zeros((720,1280, 3)).astype(np.uint8)
         self.DepthFrameRGB = np.zeros((720,1280, 3)).astype(np.uint8)
 
+        self.BlockContourImg = np.zeros((720,1280, 3)).astype(np.uint8)
 
         # mouse clicks & calibration variables
         self.cameraCalibrated = False
@@ -63,6 +64,28 @@ class Camera():
         self.cam_homography_matrix = np.array([])
         self.cam_extrinsic_maxtrix = 0
         self.world_coord_calib_flag = False
+        self.colors = list((
+        {'id': 'red', 'color': (10, 10, 127)},
+        {'id': 'orange', 'color': (30, 75, 150)},
+        {'id': 'yellow', 'color': (30, 150, 200)},
+        {'id': 'green', 'color': (20, 60, 20)},
+        {'id': 'blue', 'color': (100, 50, 0)},
+        {'id': 'violet', 'color': (100, 40, 80)})
+        )
+
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
+
+
+    def retrieve_area_color(self, data, contour, labels):
+        mask = np.zeros(data.shape[:2], dtype="uint8")
+        cv2.drawContours(mask, [contour], -1, 255, -1)
+        mean = cv2.mean(data, mask=mask)[:3]
+        min_dist = (np.inf, None)
+        for label in labels:
+            d = np.linalg.norm(label["color"] - np.array(mean))
+            if d < min_dist[0]:
+                min_dist = (d, label["id"])
+        return min_dist[1]
 
     def processVideoFrame(self):
         """!
@@ -185,7 +208,33 @@ class Camera():
                     TODO: Implement your block detector here. You will need to locate blocks in 3D space and put their XYZ
                     locations in self.block_detections
         """
-        pass
+        rgb_image = self.VideoFrame.copy() #NDArray[uint8]
+        cnt_image = self.VideoFrame.copy()
+        depth_data = self.DepthFrameRaw.copy()
+
+        cv2.rectangle(cnt_image, (275,120),(1100,720), (255, 0, 0), 2)
+        cv2.rectangle(cnt_image, (575,414),(723,720), (255, 0, 0), 2)
+        mask = np.zeros_like(depth_data, dtype=np.uint8)
+
+
+        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 905, 973), mask)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(cnt_image, contours, -1, (0,255,255), thickness=1)
+
+        for contour in contours:
+            color = self.retrieve_area_color(rgb_image, contour, self.colors)
+            theta = cv2.minAreaRect(contour)[2]
+            M = cv2.moments(contour)
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
+            cv2.putText(cnt_image, color, (cx-30, cy+40), self.block_detectionsfont, 1.0, (0,0,0), thickness=2)
+            cv2.putText(cnt_image, str(int(theta)), (cx, cy), self.font, 0.5, (255,255,255), thickness=2)
+            print(color, int(theta), cx, cy)
+
+        self.BlockContourImg = cnt_image
+        cv2.imshow("Block detections window", cv2.cvtColor(self.BlockContourImg, cv2.COLOR_RGB2BGR))
+
+
 
     def detectBlocksInDepthImage(self):
         """!
@@ -219,12 +268,14 @@ class Camera():
         newrow_ones = np.ones((1,266))
         xyz_one_array = np.vstack([self.grid_points_flattened, newrowz])
         xyz_one_array = np.vstack([xyz_one_array, newrow_ones]) # 4x266
-        Hprod = np.dot(extrinsicMat, xyz_one_array)  # 3x266
+        Hprod = np.dot(extrinsicMat, xyz_one_array)  # 4x266
+        depths_camera = Hprod[2,:]
         Imat = np.eye(3)
         column_to_be_added = np.array([[0], [0], [0]])
         Imat = np.hstack([Imat, column_to_be_added])
-        P = (1 / 970) * np.dot(intrinsicMat, Imat)
-        uv_mat = np.dot(P, Hprod)  # use only first 2 rows of this to draw on opencv
+        P = (1/970) * np.dot(intrinsicMat, Imat)
+        uv_mat =  np.dot(P, Hprod)
+        # uv_mat = (1 / depths_camera) * np.dot(P, Hprod)  # use only first 2 rows of this to draw on opencv
 
         # points_xyz_c = np.dot(self.extrinsicMat, points_xyz_w)  # must be 4x20
         # projection_mat = np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0]])
@@ -397,6 +448,7 @@ class VideoThread(QThread):
             cv2.namedWindow("Depth window", cv2.WINDOW_NORMAL)
             cv2.namedWindow("Tag window", cv2.WINDOW_NORMAL)
             cv2.namedWindow("Grid window", cv2.WINDOW_NORMAL)
+            cv2.namedWindow("Block detections window", cv2.WINDOW_NORMAL)
             time.sleep(0.5)
         try:
             while rclpy.ok():
@@ -405,6 +457,8 @@ class VideoThread(QThread):
                 depth_frame = self.camera.convertQtDepthFrame()
                 tag_frame = self.camera.convertQtTagImageFrame()
                 self.camera.projectGridInRGBImage()
+                self.camera.blockDetector()
+
                 grid_frame = self.camera.convertQtGridFrame()
                 if ((rgb_frame != None) & (depth_frame != None)):
                     self.updateFrame.emit(
@@ -424,6 +478,10 @@ class VideoThread(QThread):
                         cv2.cvtColor(self.camera.TagImageFrame, cv2.COLOR_RGB2BGR))
                     cv2.imshow("Grid window",
                         cv2.cvtColor(self.camera.GridFrame, cv2.COLOR_RGB2BGR))
+                    
+                    cv2.imshow("Block detections window",
+                        cv2.cvtColor(self.camera.BlockContourImg, cv2.COLOR_RGB2BGR))
+
                     cv2.waitKey(3)
                     time.sleep(0.03)
         except KeyboardInterrupt:

@@ -192,6 +192,7 @@ def IK_geometric(dh_params, pose):
     theta = pose[4]
     psi = pose[5]
 
+
     angle = []
     offset = []
     length = []
@@ -200,7 +201,6 @@ def IK_geometric(dh_params, pose):
     link = 5
     for i in range(link):
         curr = dh_params[i]
-        print("Curr: ", curr)
         angle.append(curr[0])
         offset.append(curr[1])
         length.append(curr[2])
@@ -210,47 +210,50 @@ def IK_geometric(dh_params, pose):
     wrist = []
 
     # Wrist Position
-    wrist = np.transpose([x,y,z]) - 0.174 * euler2mat(phi, theta, psi) * np.transpose([0,0,1])
+    wrist = np.transpose([x,y,z]) - np.dot(np.dot(174, euler2mat(phi, theta, psi)),np.transpose([0,0,1]))
+    print(np.dot(np.dot(174, euler2mat(phi, theta, psi)),np.transpose([0,0,1])))
+
     xc = wrist[0]
     yc = wrist[1]
     zc = wrist[2]
 
     r2 = xc**2 + yc**2
     s2 = zc - offset[0]
+    print(xc, yc, zc)
 
     # Config One: Down, Up, Sum
-    J11 = np.atan2(yc,xc)
-    J13 = np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
-    J12 = np.atan2(yc,xc) - np.atan2(length[2]*np.sin(J13), length[1] * length[2] * np.cos(J13))
+    J11 = -np.arctan2(xc,yc)
+    J13 = np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J12 = np.arctan2(yc,xc) - np.arctan2(length[2]*np.sin(J13), length[1] * length[2] * np.cos(J13))
     J14 = phi - (J13 - J12)
     configOne = [J11,J12,J13,J14]
 
     # Config Two: Up, Down, Sum
-    J21 = np.atan2(yc,xc)
-    J23 = -np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
-    J22 = np.atan2(yc,xc) - np.atan2(length[2]*np.sin(J23), length[1] * length[2] * np.cos(J23))
+    J21 = -np.arctan2(xc,yc)
+    J23 = -np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J22 = np.arctan2(yc,xc) - np.arctan2(length[2]*np.sin(J23), length[1] * length[2] * np.cos(J23))
     J24 = phi - (J23 - J22)
     configTwo = [J21,J22,J23,J24]
 
     # Config Three: Sum, Down, Up
-    J31 = np.atan2(yc,xc)
-    J33 = np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
-    J34 = np.atan2(y,x) - np.atan2(length[2]*np.sin(J33), length[1] * length[2] * np.cos(J33))
+    J31 = -np.arctan2(xc,yc)
+    J33 = np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J34 = np.arctan2(y,x) - np.arctan2(length[2]*np.sin(J33), length[1] * length[2] * np.cos(J33))
     J32 = phi - (J33 - J34)
     configThree = [J31,J32,J33,J34]
 
     # Config Four: Sum, Up, Down
-    J41 = np.atan2(yc,xc)
-    J43 = -np.acos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
-    J44 = np.atan2(yc,xc) - np.atan2(length[2]*np.sin(J43), length[1] * length[2] * np.cos(J43))
+    J41 = -np.arctan2(xc,yc)
+    J43 = -np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J44 = np.arctan2(yc,xc) - np.arctan2(length[2]*np.sin(J43), length[1] * length[2] * np.cos(J43))
     J42 = phi - (J23 - J22)
     configFour = [J41,J42,J43,J44]
    
     # Put the four configs into one array
-    joint_configs[0] = configOne
-    joint_configs[1] = configTwo
-    joint_configs[2] = configThree
-    joint_configs[3] = configFour
+    joint_configs.append(configOne)
+    joint_configs.append(configTwo)
+    joint_configs.append(configThree)
+    joint_configs.append(configFour)
 
     return joint_configs
 

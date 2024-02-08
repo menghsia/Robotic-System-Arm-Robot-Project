@@ -372,17 +372,18 @@ class StateMachine():
         # Get click location from user
 
         # Temp values
-        x = 0.1
-        y = 0.1
-        z = 0.1
+        x = 200
+        y = 175
+        z = 100
         phi = 1.57
         theta = 1.57
-        psi = 1.57
+        psi = 1.57 #np.arctan2(y,x)
 
         # # Add 100mm to z position so we don't smash into board
         # z += 0.1
 
         pose = [x, y, z, phi, theta, psi]
+        print(pose)
 
         # Get needed angles from IK
         from kinematics import IK_geometric

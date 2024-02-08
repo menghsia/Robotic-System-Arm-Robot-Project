@@ -44,6 +44,7 @@ cnt_image = cv2.imread(args["image"])
 depth_data = cv2.imread(args["depth"], cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 cv2.namedWindow("Image window", cv2.WINDOW_NORMAL)
 #cv2.namedWindow("Threshold window", cv2.WINDOW_NORMAL)
+
 """mask out arm & outside board"""
 mask = np.zeros_like(depth_data, dtype=np.uint8)
 cv2.rectangle(mask, (275,120),(1100,720), 255, cv2.FILLED)
@@ -54,6 +55,7 @@ thresh = cv2.bitwise_and(cv2.inRange(depth_data, lower, upper), mask)
 # depending on your version of OpenCV, the following line could be:
 # _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
 cv2.drawContours(cnt_image, contours, -1, (0,255,255), thickness=1)
 for contour in contours:
     color = retrieve_area_color(rgb_image, contour, colors)

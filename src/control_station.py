@@ -119,6 +119,10 @@ class Gui(QMainWindow):
         self.ui.btnUser7.clicked.connect(partial(nxt_if_arm_init, 'clickImplementation'))
 
 
+        self.ui.btnUser8.setText('View block detections')
+        self.ui.btnUser8.clicked.connect(lambda: self.camera.blockDetector())
+
+
         # Sliders
         for sldr in self.joint_sliders:
             sldr.valueChanged.connect(self.sliderChange)
@@ -155,7 +159,7 @@ class Gui(QMainWindow):
     @pyqtSlot(list)
     def updateJointReadout(self, joints):
         for rdout, joint in zip(self.joint_readouts, joints):
-            rdout.setText(str('%+.2f' % (joint * R2D)))
+            rdout.setText(str('%+.2f' % (joint )))#* R2D)))
 
     ### TODO: output the rest of the orientation according to the convention chosen
     @pyqtSlot(list)
