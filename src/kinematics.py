@@ -168,8 +168,9 @@ def to_s_matrix(w, v):
     pass
 
 def euler2mat(phi,theta,psi):
-    from scipy.spatial.transform import Rotation
-    mat = Rotation.from_euler("zyz", (phi,theta,psi))
+    mat = [[np.cos(phi)*np.cos(theta)*np.cos(psi) - np.sin(phi)*np.sin(psi), -np.cos(psi)*np.sin(phi) - np.cos(phi)*np.cos(theta)*np.sin(psi), np.cos(phi)*np.sin(theta)],
+           [np.cos(phi)*np.sin(psi) + np.cos(theta)*np.cos(psi)*np.sin(phi), np.cos(phi)*np.cos(psi) - np.cos(theta)*np.sin(phi)*np.sin(psi), np.sin(phi)*np.sin(theta)],
+           [-np.cos(psi)*np.sin(theta), np.sin(theta)*np.sin(psi), np.cos(theta)]]
     return mat
 
 def IK_geometric(dh_params, pose):
@@ -207,10 +208,6 @@ def IK_geometric(dh_params, pose):
 
     joint_configs = []
     wrist = []
-
-    if ((x**2 + y**2 + z**2) > 400):
-        print("This pose is not reachable")
-        return
 
     # Wrist Position
     wrist = np.transpose([x,y,z]) - 0.174 * euler2mat(phi, theta, psi) * np.transpose([0,0,1])
