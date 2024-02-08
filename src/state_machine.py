@@ -356,6 +356,65 @@ class StateMachine():
             time.sleep(5)
         self.next_state = "idle"
 
+
+    def clickImplementation(self):
+        # Set state to clickImplementation
+        self.current_state = "clickImplementation"
+
+        # Part 1: Pick up a block
+        # Message to tell user to click on a block
+        self.status_message = "Click on block to pickup"
+        sys.stdout.flush()
+
+        # Get click location from user
+
+        # Temp values
+        x = 0.1
+        y = 0.1
+        z = 0.1
+        phi = 0
+        theta = 0
+        psi = 0
+
+        # # Add 100mm to z position so we don't smash into board
+        # z += 0.1
+
+        pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        from kinematics import IK_geometric
+        joint_configs = np.zeros(4,4)
+        joint_configs = IK_geometric(self.dh_params, pose) 
+        print(joint_configs)
+
+        # # Move to desired position (+100mm in Z)
+        # self.rxarm.set_positions(joint_configs[0])
+
+        # # Close the gripper
+        # self.rxarm.close_gripper()
+        # time.sleep(2)
+
+        # # Part 2: Drop off the block
+        # # Message to tell user to click on a drop location
+        # self.status_message = "Click location to drop block"
+        # sys.stdout.flush()
+
+
+        # # Open the gripper
+        # self.rxarm.open_gripper_gripper()
+        # time.sleep(2)
+
+        # # Lift up the gripper (+100mm in Z)
+
+        # self.rxarm.set_positions()
+
+        # # Send gripper back to initialized position
+        # self.initialize_rxarm()
+
+        # Set status back to idle
+        self.next_state = "idle"
+
+
 class StateMachineThread(QThread):
     """!
     @brief      Runs the state machine
