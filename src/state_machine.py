@@ -374,45 +374,96 @@ class StateMachine():
         # Temp values
         x = 200
         y = 175
-        z = 100
+        z = 0
         phi = 1.57
         theta = 1.57
-        psi = 1.57 #np.arctan2(y,x)
+        psi = 1.57 
 
-        # # Add 100mm to z position so we don't smash into board
-        # z += 0.1
-
+        # Add 100mm to z position so we don't smash into board
+        z += 100
         pose = [x, y, z, phi, theta, psi]
-        print(pose)
-
+    
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
-        print(joint_configs)
-
-        # # Move to desired position (+100mm in Z)
-        # self.rxarm.set_positions(joint_configs[0])
-
-        # # Close the gripper
-        # self.rxarm.close_gripper()
-        # time.sleep(2)
-
-        # # Part 2: Drop off the block
-        # # Message to tell user to click on a drop location
-        # self.status_message = "Click location to drop block"
-        # sys.stdout.flush()
+        
+        # Send arm to initial position
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
+        time.sleep(3)
+    
+        # Move above desired position (+100mm in Z)
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
 
 
-        # # Open the gripper
-        # self.rxarm.open_gripper_gripper()
-        # time.sleep(2)
+        # Lower the gripper
+        z = 0
+        pose = [x, y, z, phi, theta, psi]
 
-        # # Lift up the gripper (+100mm in Z)
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
 
-        # self.rxarm.set_positions()
+        # Close the gripper
+        self.rxarm.close_gripper()
+        time.sleep(3)
 
-        # # Send gripper back to initialized position
-        # self.initialize_rxarm()
+        # Send arm to initial position
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
+        time.sleep(3)
+
+        # Part 2: Drop off the block
+        # Message to tell user to click on a drop location
+        self.status_message = "Click location to drop block"
+        sys.stdout.flush()
+
+
+        # Get click location from user
+
+        # Temp values
+        x = 0
+        y = 175
+        z = 0
+        phi = 1.57
+        theta = 1.57
+        psi = 1.57 
+
+        # Add 100mm to z position so we don't smash into board
+        z += 100
+        pose = [x, y, z, phi, theta, psi]
+    
+        # Get needed angles from IK
+        from kinematics import IK_geometric
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        
+
+        # Move above desired position (+100mm in Z)
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+
+        # Lower the gripper
+        z = 0
+        pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+        # Close the gripper
+        self.rxarm.open_gripper()
+        time.sleep(3)
+
+        # Send arm to initial position
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
+        time.sleep(3)
+
 
         # Set status back to idle
         self.next_state = "idle"

@@ -169,8 +169,8 @@ def to_s_matrix(w, v):
 
 def euler2mat(phi,theta,psi):
     mat = [[np.cos(phi)*np.cos(theta)*np.cos(psi) - np.sin(phi)*np.sin(psi), -np.cos(psi)*np.sin(phi) - np.cos(phi)*np.cos(theta)*np.sin(psi), np.cos(phi)*np.sin(theta)],
-           [np.cos(phi)*np.sin(psi) + np.cos(theta)*np.cos(psi)*np.sin(phi), np.cos(phi)*np.cos(psi) - np.cos(theta)*np.sin(phi)*np.sin(psi), np.sin(phi)*np.sin(theta)],
-           [-np.cos(psi)*np.sin(theta), np.sin(theta)*np.sin(psi), np.cos(theta)]]
+           [np.cos(phi)*np.sin(psi) + np.cos(theta)*np.cos(psi)*np.sin(phi), np.cos(phi)*np.cos(psi) - np.cos(theta)*np.sin(phi)*np.sin(psi), np.sin(phi-1.57)*np.sin(theta-1.57)],
+           [-np.cos(psi)*np.sin(theta), np.sin(theta)*np.sin(psi), np.cos(theta-1.57)]]
     return mat
 
 def IK_geometric(dh_params, pose):
@@ -210,44 +210,45 @@ def IK_geometric(dh_params, pose):
     wrist = []
 
     # Wrist Position
-    wrist = np.transpose([x,y,z]) - np.dot(np.dot(174, euler2mat(phi, theta, psi)),np.transpose([0,0,1]))
-    print(np.dot(np.dot(174, euler2mat(phi, theta, psi)),np.transpose([0,0,1])))
+    wrist = np.transpose([x,y,z]) - np.dot(np.dot(-174, euler2mat(phi, theta, psi)),np.transpose([0,0,1]))
+    print(np.dot(-174, euler2mat(phi, theta, psi)))
+    print("End Effector Position: ", pose)
+    print("Wrist Position: ", wrist)
 
     xc = wrist[0]
     yc = wrist[1]
     zc = wrist[2]
 
-    r2 = xc**2 + yc**2
+    r2 = (0.001*xc)**2 + (0.001*yc)**2
     s2 = zc - offset[0]
-    print(xc, yc, zc)
 
     # Config One: Down, Up, Sum
     J11 = -np.arctan2(xc,yc)
-    J13 = np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
-    J12 = np.arctan2(yc,xc) - np.arctan2(length[2]*np.sin(J13), length[1] * length[2] * np.cos(J13))
-    J14 = phi - (J13 - J12)
-    configOne = [J11,J12,J13,J14]
+    J13 = np.arccos(((r2 + (0.001*zc)**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J12 = np.arctan2(0.001*zc,np.sqrt(r2)) - np.arctan2(length[2]*np.sin(J13), length[1] + length[2] * np.cos(J13))
+    J14 =  - phi - (J13 + J12)
+    configOne = [J11, 1.57 - J12, -1.57 - J13, -J14,0]
 
     # Config Two: Up, Down, Sum
     J21 = -np.arctan2(xc,yc)
-    J23 = -np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
-    J22 = np.arctan2(yc,xc) - np.arctan2(length[2]*np.sin(J23), length[1] * length[2] * np.cos(J23))
-    J24 = phi - (J23 - J22)
-    configTwo = [J21,J22,J23,J24]
+    J23 = -np.arccos(((r2 + (0.001*zc)**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J22 = np.arctan2(0.001*zc,np.sqrt(r2)) - np.arctan2(length[2]*np.sin(J23), length[1] + length[2] * np.cos(J23))
+    J24 =  - phi - (J23 + J22) + 0.26
+    configTwo = [J21, 1.57 - J22, -1.31 - J23, -J24, 0]
 
     # Config Three: Sum, Down, Up
     J31 = -np.arctan2(xc,yc)
-    J33 = np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J33 = np.arccos((((0.001*xc)**2 + (0.001*yc)**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
     J34 = np.arctan2(y,x) - np.arctan2(length[2]*np.sin(J33), length[1] * length[2] * np.cos(J33))
     J32 = phi - (J33 - J34)
-    configThree = [J31,J32,J33,J34]
+    configThree = [J31,J32,J33,J34,0]
 
     # Config Four: Sum, Up, Down
     J41 = -np.arctan2(xc,yc)
-    J43 = -np.arccos(((xc**2 + yc**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
+    J43 = -np.arccos((((0.001*xc)**2 + (0.001*yc)**2) - length[1]**2 - length[2]**2) / (2 * length[1] * length[2]))
     J44 = np.arctan2(yc,xc) - np.arctan2(length[2]*np.sin(J43), length[1] * length[2] * np.cos(J43))
     J42 = phi - (J23 - J22)
-    configFour = [J41,J42,J43,J44]
+    configFour = [J41,J42,J43,J44,0]
    
     # Put the four configs into one array
     joint_configs.append(configOne)
