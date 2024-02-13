@@ -317,11 +317,12 @@ class Gui(QMainWindow):
                 # world_origin_tf = np.array([[1,0,0, -115], [0,1,0, -9], [0,0,1,0], [0,0,0,1]])
                 # xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
-                if self.camera.world_coord_calib_flag:
-                    self.camera.cs_x = xyz_w[0]
-                    self.camera.cs_y = xyz_w[1]
-                    self.camera.cs_z = xyz_w[2]
+                self.camera.cs_x = xyz_w[0]
+                self.camera.cs_y = xyz_w[1]
+                self.camera.cs_z = xyz_w[2]
 
+                if self.camera.world_coord_calib_flag:
+                    
                     self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
                                         (xyz_w[0], xyz_w[1], xyz_w[2])) 
             
