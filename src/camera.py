@@ -196,7 +196,7 @@ class Camera():
         """
         pts1 = coord1[0:3].astype(np.float32)
         pts2 = coord2[0:3].astype(np.float32)
-        print(cv2.getAffineTransform(pts1, pts2))
+        #print(cv2.getAffineTransform(pts1, pts2))
         return cv2.getAffineTransform(pts1, pts2)
 
     def loadCameraCalibration(self, file):
@@ -247,7 +247,7 @@ class Camera():
                 cy = 24
             cv2.putText(cnt_image, color, (cx-30, cy+40), self.font, 1.0, (0,0,0), thickness=2)
             cv2.putText(cnt_image, str(int(theta)), (cx, cy), self.font, 0.5, (255,255,255), thickness=2)
-            print(color, int(theta), cx, cy)
+            #print(color, int(theta), cx, cy)
 
         self.BlockContourImg = cnt_image
         cv2.imshow("Block detections window", cv2.cvtColor(self.BlockContourImg, cv2.COLOR_RGB2BGR))

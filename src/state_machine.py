@@ -6,6 +6,7 @@ import time
 import numpy as np
 import rclpy
 from rxarm import RXArm, RXArmThread
+from camera import Camera
 import sys
 import cv2
 import pdb
@@ -259,8 +260,8 @@ class StateMachine():
         '''
         D = np.array([0.1615992933511734, -0.5091497302055359, -0.0018777191871777177,0.0004640672996174544, 0.45967552065849304])
         distCoeffs = D
-        print("world_points:",world_points)
-        print("image_points:",image_points)
+        #print("world_points:",world_points)
+        #print("image_points:",image_points)
         [_, R_exp, t] = cv2.solvePnP(world_points,
                                  image_points,
                                  K,
@@ -284,8 +285,8 @@ class StateMachine():
         apriltag_centers_corners_cv =[]
         pnp_points_uv=[]
         for tag_id, point_pair_list in camera_ids_tags.items():
-            print("TEST tag id order: ", tag_id)
-            print(type(point_pair_list))
+            #print("TEST tag id order: ", tag_id)
+            #print(type(point_pair_list))
             for point_pair in point_pair_list:
                 if tag_id < 5:
                     apriltag_centers_corners_cv.append([point_pair[0], point_pair[1]])  # UV. To get depth, use the apriltags 3rd col
@@ -311,7 +312,7 @@ class StateMachine():
         
         #############
         
-        print("pnp_points_uv:",pnp_points_uv)
+        #print("pnp_points_uv:",pnp_points_uv)
         # pnp_points_uv=pnp_points_uv.reshape((6,2))
         pnp_points_uv=pnp_points_uv.reshape((4,2))
         # pnp_points_world=np.array([[-250,-25, 0],[250,-25, 0],[250,275, 0],[-250, 275,0],[0,175,150], [-350, 150, 100]])
@@ -320,7 +321,7 @@ class StateMachine():
         depths_camera = np.transpose(np.delete(src_pts, (0, 1), axis=1))
         points_ones = np.ones(depths_camera.size)
         A_pnp = self.recover_homogenous_transform_pnp(pnp_points_uv.astype(np.float32), pnp_points_world.astype(np.float32), self.intrinsicMat)
-        print("A_pnp:",A_pnp)
+        #print("A_pnp:",A_pnp)
         self.camera.cam_extrinsic_maxtrix = A_pnp
         #points_camera = np.transpose(depths_camera * np.dot(self.K_inv, np.transpose(np.column_stack((pnp_points_uv, points_ones)))))
         #points_transformed_pnp = np.dot(np.linalg.inv(A_pnp), np.transpose(np.column_stack((points_camera, points_ones))))
@@ -330,12 +331,12 @@ class StateMachine():
         # pdb.set_trace()
 
         # print("calibrate func src_pts: ", src_pts)
-        print("dest_pts shape: ", dest_pts.shape)
+        # print("dest_pts shape: ", dest_pts.shape)
 
 
         # self.homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
         self.camera.cam_homography_matrix = cv2.findHomography(src_pts, dest_pts)[0]
-        print(self.camera.cam_homography_matrix)
+        # print(self.camera.cam_homography_matrix)
         
         self.camera.world_coord_calib_flag = True
         self.status_message = "Calibration - Completed Calibration"
@@ -371,9 +372,14 @@ class StateMachine():
 
         # Get click location from user
 
+        while(self.camera.new_click == False):
+            pass
+            
+        print(self.camera.last_click)
+
         # Temp values
-        x = 200
-        y = 175
+        x = -200
+        y = 0
         z = 0
         phi = 1.57
         theta = 1.57
@@ -397,7 +403,7 @@ class StateMachine():
 
 
         # Lower the gripper
-        z = 0
+        z = -5
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
@@ -422,10 +428,11 @@ class StateMachine():
 
 
         # Get click location from user
+        
 
         # Temp values
         x = 0
-        y = 175
+        y = 200
         z = 0
         phi = 1.57
         theta = 1.57
@@ -446,7 +453,7 @@ class StateMachine():
 
 
         # Lower the gripper
-        z = 0
+        z = -5
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
