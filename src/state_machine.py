@@ -374,20 +374,23 @@ class StateMachine():
 
         while(self.camera.new_click == False):
             pass
-            
-        print(self.camera.last_click)
+      
+        self.camera.new_click = False
 
         # Temp values
-        x = -200
-        y = 0
-        z = 0
+        x = round(self.camera.cs_x[0],2)
+        y = round(self.camera.cs_y[0],2)
+        z = round(self.camera.cs_z[0],2)
         phi = 1.57
         theta = 1.57
         psi = 1.57 
 
+       
         # Add 100mm to z position so we don't smash into board
         z += 100
         pose = [x, y, z, phi, theta, psi]
+
+        print(pose)
     
         # Get needed angles from IK
         from kinematics import IK_geometric
@@ -421,6 +424,8 @@ class StateMachine():
         self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
         time.sleep(3)
 
+
+
         # Part 2: Drop off the block
         # Message to tell user to click on a drop location
         self.status_message = "Click location to drop block"
@@ -428,12 +433,16 @@ class StateMachine():
 
 
         # Get click location from user
-        
+
+        while(self.camera.new_click == False):
+            pass
+      
+        self.camera.new_click = False
 
         # Temp values
-        x = 0
-        y = 200
-        z = 0
+        x = self.camera.cs_x[0]
+        y = self.camera.cs_y[0]
+        z = self.camera.cs_z[0]
         phi = 1.57
         theta = 1.57
         psi = 1.57 
@@ -470,7 +479,6 @@ class StateMachine():
         # Send arm to initial position
         self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
         time.sleep(3)
-
 
         # Set status back to idle
         self.next_state = "idle"

@@ -45,6 +45,7 @@ class Camera():
         self.extrinsic_matrix = np.eye(4)
         self.last_click = np.array([0, 0])
         self.new_click = False
+        self.dropFlag = False
         self.rgb_click_points = np.zeros((5, 2), int)
         self.depth_click_points = np.zeros((5, 2), int)
         self.grid_x_points = np.arange(-450, 500, 50)

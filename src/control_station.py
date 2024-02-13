@@ -346,11 +346,13 @@ class Gui(QMainWindow):
         @param      mouse_event  QtMouseEvent containing the pose of the mouse at the time of the event not current time
         """
         """ Get mouse posiiton """
-    
+
+        self.camera.dropFlag = True
         pt = mouse_event.pos()
         self.camera.last_click[0] = pt.x()
         self.camera.last_click[1] = pt.y()
         self.camera.new_click = True
+        self.camera.dropFlag = False
     
         
     
