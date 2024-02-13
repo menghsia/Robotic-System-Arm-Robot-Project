@@ -118,9 +118,23 @@ class Gui(QMainWindow):
         self.ui.btnUser7.setText('Click and Grab')
         self.ui.btnUser7.clicked.connect(partial(nxt_if_arm_init, 'clickImplementation'))
 
-
         self.ui.btnUser8.setText('View block detections')
         self.ui.btnUser8.clicked.connect(lambda: self.camera.blockDetector())
+
+        self.ui.btnUser9.setText('Event One')
+        self.ui.btnUser9.clicked.connect(partial(nxt_if_arm_init, 'eventOne'))
+
+        self.ui.btnUser9.setText('Event Two')
+        self.ui.btnUser9.clicked.connect(partial(nxt_if_arm_init, 'eventTwo'))
+
+        self.ui.btnUser9.setText('Event Three')
+        self.ui.btnUser9.clicked.connect(partial(nxt_if_arm_init, 'eventThree'))
+
+        self.ui.btnUser9.setText('Event Four')
+        self.ui.btnUser9.clicked.connect(partial(nxt_if_arm_init, 'eventFour'))
+
+        self.ui.btnUser10.setText('Bonus')
+        self.ui.btnUser10.clicked.connect(partial(nxt_if_arm_init, 'Bonus'))
 
 
         # Sliders
