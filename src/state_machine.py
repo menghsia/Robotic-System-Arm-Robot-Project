@@ -419,45 +419,45 @@ class StateMachine():
         self.current_state = "eventOne"
         self.status_message = "Event One"
 
-        # Initialize dropoff location
-        xdL = 100;
-        xdS = -100;
-        yd = -25;
-        zd = 5;
+        # # Initialize dropoff location
+        # xdL = 100;
+        # xdS = -100;
+        # yd = -25;
+        # zd = 5;
 
-        # Move large blocks to the right
-        for (LB in largeBlocks):
-            x = LB.x
-            y = LB.y
-            z = LB.z
-            phi = 1.57
-            theta = 1.57
-            psi = 1.57 
-            pose = [x, y, z, phi, theta, psi]
+        # # Move large blocks to the right
+        # for (LB in largeBlocks):
+        #     x = LB.x
+        #     y = LB.y
+        #     z = LB.z
+        #     phi = 1.57
+        #     theta = 1.57
+        #     psi = 1.57 
+        #     pose = [x, y, z, phi, theta, psi]
         
-            self.pickup(pose)
+        #     self.pickup(pose)
         
-            xdL += 60
-            pose = [xdL, yd, zd, phi, theta, psi]
+        #     xdL += 60
+        #     pose = [xdL, yd, zd, phi, theta, psi]
         
-            self.dropoff(pose)
+        #     self.dropoff(pose)
         
         
 
-        # Move small blocks to the left
-        for (SB in smallBlocks): 
-            x = SB.x
-            y = SB.y
-            z = SB.z
-            phi = 1.57
-            theta = 1.57
-            psi = 1.57 
-            pose = [x, y, z, phi, theta, psi]
+        # # Move small blocks to the left
+        # for (SB in smallBlocks): 
+        #     x = SB.x
+        #     y = SB.y
+        #     z = SB.z
+        #     phi = 1.57
+        #     theta = 1.57
+        #     psi = 1.57 
+        #     pose = [x, y, z, phi, theta, psi]
         
-            self.pickup(pose)
+        #     self.pickup(pose)
         
-            xdL -= 40
-            pose = [xdS, yd, zd, phi, theta, psi]
+        #     xdL -= 40
+        #     pose = [xdS, yd, zd, phi, theta, psi]
         
             self.dropoff(pose)
 
@@ -472,50 +472,50 @@ class StateMachine():
         self.current_state = "eventTwo"
         self.status_message = "Event Two"
 
-        # Initialize variables
-        AT1x = -250  
-        AT1y = 275
-        AT1z = 0
-        AT2x = 250  
-        AT2y = 275
-        AT2z = 0
+        # # Initialize variables
+        # AT1x = -250  
+        # AT1y = 275
+        # AT1z = 0
+        # AT2x = 250  
+        # AT2y = 275
+        # AT2z = 0
 
 
-        # Stack blocks on April Tags
+        # # Stack blocks on April Tags
 
-        # Three large blocks on (-250,275)
-        for (LB in largeBlocks):
-            x = LB.x
-            y = LB.y
-            z = LB.z
-            phi = 1.57
-            theta = 1.57
-            psi = 1.57 
-            pose = [x, y, z, phi, theta, psi]
+        # # Three large blocks on (-250,275)
+        # for (LB in largeBlocks):
+        #     x = LB.x
+        #     y = LB.y
+        #     z = LB.z
+        #     phi = 1.57
+        #     theta = 1.57
+        #     psi = 1.57 
+        #     pose = [x, y, z, phi, theta, psi]
 
-            self.pickup(pose)
+        #     self.pickup(pose)
         
-            AT1z += 40
-            pose = [AT1x, AT1y, AT1z, phi, theta, psi]
+        #     AT1z += 40
+        #     pose = [AT1x, AT1y, AT1z, phi, theta, psi]
         
-            self.dropoff(pose)
+        #     self.dropoff(pose)
         
-         # Three small blocks on (250,275)
-        for (SB in smallBlocks):
-            x = SB.x
-            y = SB.y
-            z = SB.z
-            phi = 1.57
-            theta = 1.57
-            psi = 1.57 
-            pose = [x, y, z, phi, theta, psi]
+        #  # Three small blocks on (250,275)
+        # for (SB in smallBlocks):
+        #     x = SB.x
+        #     y = SB.y
+        #     z = SB.z
+        #     phi = 1.57
+        #     theta = 1.57
+        #     psi = 1.57 
+        #     pose = [x, y, z, phi, theta, psi]
 
-            self.pickup(pose)
+        #     self.pickup(pose)
         
-            AT2z += 40
-            pose = [AT2x, AT2y, AT2z, phi, theta, psi]
+        #     AT2z += 40
+        #     pose = [AT2x, AT2y, AT2z, phi, theta, psi]
         
-            self.dropoff(pose)
+        #     self.dropoff(pose)
 
         # Set status back to idle
         self.next_state = "idle"
