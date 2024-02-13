@@ -82,8 +82,17 @@ class Camera():
         self.cs_z = None
 
         # for getting image after applying homography
-        self.warped_img
+        self.warped_img = None
+        self.modified_warped_img_flag = False
 
+        self.T_f = np.array([
+                        [1, 0,  0, 0],
+                        [0, -1, 0, 0],
+                        [0, 0, -1, 1000],   
+                        [0, 0,  0, 1]
+                        ])  #final camera extrinsic
+        
+        self.K = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]]) 
 
 
     def retrieve_area_color(self, data, contour, labels):
@@ -114,8 +123,8 @@ class Camera():
         self.DepthFrameRGB = cv2.cvtColor(self.DepthFrameHSV,
                                           cv2.COLOR_HSV2RGB)
         
-        if not (self.cam_homography_matrix.size == 0):        
-            self.DepthFrameRGB = cv2.warpPerspective(self.DepthFrameRGB, self.cam_homography_matrix, (self.DepthFrameRGB.shape[1], self.DepthFrameRGB.shape[0]), flags=cv2.INTER_LINEAR)
+        # if not (self.cam_homography_matrix.size == 0): 
+        #     self.DepthFrameRGB = cv2.warpPerspective(self.DepthFrameRGB, self.cam_homography_matrix, (self.DepthFrameRGB.shape[1], self.DepthFrameRGB.shape[0]), flags=cv2.INTER_LINEAR)
 
 
     def loadVideoFrame(self):
@@ -133,8 +142,8 @@ class Camera():
         self.DepthFrameRaw = cv2.imread("data/raw_depth.png",
                                         0).astype(np.uint16)
 
-        if not (self.cam_homography_matrix.size == 0):        
-            self.DepthFrameRaw = cv2.warpPerspective(self.DepthFrameRaw, self.cam_homography_matrix, (self.DepthFrameRaw.shape[1], self.DepthFrameRaw.shape[0]), flags=cv2.INTER_LINEAR)
+        # if not (self.cam_homography_matrix.size == 0):        
+        #     self.DepthFrameRaw = cv2.warpPerspective(self.DepthFrameRaw, self.cam_homography_matrix, (self.DepthFrameRaw.shape[1], self.DepthFrameRaw.shape[0]), flags=cv2.INTER_LINEAR)
 
 
     def convertQtVideoFrame(self):
@@ -227,7 +236,8 @@ class Camera():
                     locations in self.block_detections
         """
 
-        if not (self.cam_homography_matrix.size == 0):
+        if self.modified_warped_img_flag:
+            print(type(self.warped_img))
             rgb_image = self.warped_img #NDArray[uint8]
             cnt_image = self.warped_img
         
@@ -235,11 +245,35 @@ class Camera():
             rgb_image = self.VideoFrame.copy() #NDArray[uint8]
             cnt_image = self.VideoFrame.copy()
         
-        depth_data = self.DepthFrameRaw.copy()
-        # depth_data = self.DepthFrameRGB.copy()
-        # pdb.set_trace()
-        # print("DEPTH ", depth_data)
+        depth_data = self.DepthFrameRaw.copy() 
+        h, w = rgb_image.shape[:2]
 
+        if self.world_coord_calib_flag:
+            T_i = self.cam_extrinsic_maxtrix
+        else:
+            T_i = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
+
+        T_relative = np.dot(self.T_f, np.linalg.inv(T_i)) # Calculate the relative transformation matrix between the initial and final camera poses
+        u = np.repeat(np.arange(w)[None, :], h, axis=0)
+        v = np.repeat(np.arange(h)[:, None], w, axis=1)
+        Z = depth_data
+        X = (u - self.K[0,2]) * Z / self.K[0,0]
+        Y = (v - self.K[1,2]) * Z / self.K[1,1]
+
+        # Homogeneous coordinates in the camera frame
+        points_camera_frame = np.stack((X, Y, Z, np.ones_like(Z)), axis=-1)
+
+        # Apply the relative transformation to the depth points
+        points_transformed = np.dot(points_camera_frame, T_relative.T)
+        
+        # Project back to depth values
+        depth_data = points_transformed[..., 2]
+
+        if self.world_coord_calib_flag:      
+            depth_data = cv2.warpPerspective(depth_data, self.cam_homography_matrix, (w, h), flags=cv2.INTER_LINEAR)
+            print("depth:",depth_data)
+
+    
         mask = np.zeros_like(depth_data, dtype=np.uint8)
         cv2.rectangle(mask, (98,14),(1190,703), 255, cv2.FILLED)  # board box
         cv2.rectangle(mask, (550,400),(720,720), 0, cv2.FILLED)  # arm box
@@ -247,7 +281,8 @@ class Camera():
         cv2.rectangle(cnt_image, (98,14),(1190,703), (255, 0, 0), 2)  # board box
         cv2.rectangle(cnt_image, (550,400),(720,720), (255, 0, 0), 2)  # arm box
 
-        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 500, 960), mask)
+        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 10, 990), mask)
+        # thresh = cv2.bitwise_and(cv2.inRange(depth_data, 500, 960), mask)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         cv2.drawContours(cnt_image, contours, -1, (0,255,255), thickness=1)
@@ -401,7 +436,8 @@ class ImageListener(Node):
             # print("cv_image.shape[1], cv_image.shape[0]: ", cv_image.shape[1], cv_image.shape[0]) # 1280 720
             cv_image = cv2.warpPerspective(cv_image, self.camera.cam_homography_matrix, (cv_image.shape[1], cv_image.shape[0]), flags=cv2.INTER_LINEAR)
             self.warped_img = cv_image
-
+            self.modified_warped_img_flag =True
+            # print("calibrated!!")
             # print("warpPerspective checkpoint")
 
         self.camera.VideoFrame = cv_image
