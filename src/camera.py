@@ -80,6 +80,9 @@ class Camera():
         self.cs_y = None
         self.cs_z = None
 
+        # for getting image after applying homography
+        self.warped_img
+
 
 
     def retrieve_area_color(self, data, contour, labels):
@@ -222,8 +225,15 @@ class Camera():
                     TODO: Implement your block detector here. You will need to locate blocks in 3D space and put their XYZ
                     locations in self.block_detections
         """
-        rgb_image = self.VideoFrame.copy() #NDArray[uint8]
-        cnt_image = self.VideoFrame.copy()
+
+        if not (self.camera.cam_homography_matrix.size == 0):
+            rgb_image = self.warped_img #NDArray[uint8]
+            cnt_image = self.warped_img
+        
+        else:
+            rgb_image = self.VideoFrame.copy() #NDArray[uint8]
+            cnt_image = self.VideoFrame.copy()
+        
         depth_data = self.DepthFrameRaw.copy()
         # depth_data = self.DepthFrameRGB.copy()
         # pdb.set_trace()
@@ -389,6 +399,8 @@ class ImageListener(Node):
             # print("Applying homography correction to image")
             # print("cv_image.shape[1], cv_image.shape[0]: ", cv_image.shape[1], cv_image.shape[0]) # 1280 720
             cv_image = cv2.warpPerspective(cv_image, self.camera.cam_homography_matrix, (cv_image.shape[1], cv_image.shape[0]), flags=cv2.INTER_LINEAR)
+            self.warped_img = cv_image
+
             # print("warpPerspective checkpoint")
 
         self.camera.VideoFrame = cv_image
