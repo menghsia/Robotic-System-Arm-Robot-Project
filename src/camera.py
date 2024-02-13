@@ -75,6 +75,12 @@ class Camera():
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
+        # world coordinates from control_station.py
+        self.cs_x = None
+        self.cs_y = None
+        self.cs_z = None
+
+
 
     def retrieve_area_color(self, data, contour, labels):
         mask = np.zeros(data.shape[:2], dtype="uint8")
