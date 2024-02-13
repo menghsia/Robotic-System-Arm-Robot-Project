@@ -103,6 +103,10 @@ class Camera():
         self.DepthFrameHSV[..., 2] = 0x9F
         self.DepthFrameRGB = cv2.cvtColor(self.DepthFrameHSV,
                                           cv2.COLOR_HSV2RGB)
+        
+        if not (self.cam_homography_matrix.size == 0):        
+            self.DepthFrameRGB = cv2.warpPerspective(self.DepthFrameRGB, self.cam_homography_matrix, (self.DepthFrameRGB.shape[1], self.DepthFrameRGB.shape[0]), flags=cv2.INTER_LINEAR)
+
 
     def loadVideoFrame(self):
         """!
@@ -118,6 +122,10 @@ class Camera():
         """
         self.DepthFrameRaw = cv2.imread("data/raw_depth.png",
                                         0).astype(np.uint16)
+
+        if not (self.cam_homography_matrix.size == 0):        
+            self.DepthFrameRaw = cv2.warpPerspective(self.DepthFrameRaw, self.cam_homography_matrix, (self.DepthFrameRaw.shape[1], self.DepthFrameRaw.shape[0]), flags=cv2.INTER_LINEAR)
+
 
     def convertQtVideoFrame(self):
         """!
@@ -211,23 +219,33 @@ class Camera():
         rgb_image = self.VideoFrame.copy() #NDArray[uint8]
         cnt_image = self.VideoFrame.copy()
         depth_data = self.DepthFrameRaw.copy()
+        # depth_data = self.DepthFrameRGB.copy()
+        # pdb.set_trace()
+        # print("DEPTH ", depth_data)
 
-        cv2.rectangle(cnt_image, (275,120),(1100,720), (255, 0, 0), 2)
-        cv2.rectangle(cnt_image, (575,414),(723,720), (255, 0, 0), 2)
         mask = np.zeros_like(depth_data, dtype=np.uint8)
+        cv2.rectangle(mask, (98,14),(1190,703), 255, cv2.FILLED)  # board box
+        cv2.rectangle(mask, (550,400),(720,720), 0, cv2.FILLED)  # arm box
 
+        cv2.rectangle(cnt_image, (98,14),(1190,703), (255, 0, 0), 2)  # board box
+        cv2.rectangle(cnt_image, (550,400),(720,720), (255, 0, 0), 2)  # arm box
 
-        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 905, 973), mask)
+        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 500, 960), mask)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
         cv2.drawContours(cnt_image, contours, -1, (0,255,255), thickness=1)
 
         for contour in contours:
             color = self.retrieve_area_color(rgb_image, contour, self.colors)
             theta = cv2.minAreaRect(contour)[2]
             M = cv2.moments(contour)
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            cv2.putText(cnt_image, color, (cx-30, cy+40), self.block_detectionsfont, 1.0, (0,0,0), thickness=2)
+            if M["m00"] != 0:
+                cx = int(M['m10']/M['m00'])
+                cy = int(M['m01']/M['m00'])
+            else:
+                cx = 24
+                cy = 24
+            cv2.putText(cnt_image, color, (cx-30, cy+40), self.font, 1.0, (0,0,0), thickness=2)
             cv2.putText(cnt_image, str(int(theta)), (cx, cy), self.font, 0.5, (255,255,255), thickness=2)
             print(color, int(theta), cx, cy)
 
