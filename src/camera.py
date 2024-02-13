@@ -227,7 +227,7 @@ class Camera():
                     locations in self.block_detections
         """
 
-        if not (self.camera.cam_homography_matrix.size == 0):
+        if not (self.cam_homography_matrix.size == 0):
             rgb_image = self.warped_img #NDArray[uint8]
             cnt_image = self.warped_img
         
