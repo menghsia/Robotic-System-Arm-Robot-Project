@@ -94,6 +94,8 @@ class Camera():
         
         self.K = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]]) 
 
+        self.firstbdflag = True
+
 
     def retrieve_area_color(self, data, contour, labels):
         mask = np.zeros(data.shape[:2], dtype="uint8")
@@ -242,17 +244,29 @@ class Camera():
         #     cnt_image = self.warped_img
         
         # else:
+
+        if self.firstbdflag:
+            time.sleep(2.5)
+            self.firstbdflag = False
+
         rgb_image = self.VideoFrame.copy() #NDArray[uint8]
         cnt_image = self.VideoFrame.copy()
         
         depth_data = self.DepthFrameRaw.copy() 
         h, w = rgb_image.shape[:2]
 
-        if self.world_coord_calib_flag:
-            T_i = self.cam_extrinsic_maxtrix
-            print("using PnP calibrated extrinsic matrix now")
-        else:
-            T_i = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
+        # TODO!!! Multiply PnP-solved extrinsic matrix by a positive 2 degree rotation homogeneous matrix!!
+        T_i= np.array([[ 9.99260666e-01, -3.84231535e-02,  1.33479174e-03,  3.05227949e+01],
+        [-3.78616658e-02, -9.77439597e-01,  2.07793954e-01,  1.10163653e+02],
+        [-6.67942069e-03, -2.07690863e-01, -9.78171708e-01,  1.03705217e+03],
+        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])
+
+        # if self.world_coord_calib_flag:
+        #     T_i = self.cam_extrinsic_maxtrix
+        #     # print("using PnP calibrated extrinsic matrix now")
+        #     # print("pnp extrinsic matrix: ", T_i)
+        # else:
+        #     T_i = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
 
         T_relative = np.dot(self.T_f, np.linalg.inv(T_i)) # Calculate the relative transformation matrix between the initial and final camera poses
         u = np.repeat(np.arange(w)[None, :], h, axis=0)
@@ -276,13 +290,13 @@ class Camera():
 
     
         mask = np.zeros_like(depth_data, dtype=np.uint8)
-        cv2.rectangle(mask, (98,14),(1190,703), 255, cv2.FILLED)  # board box
-        cv2.rectangle(mask, (550,400),(720,720), 0, cv2.FILLED)  # arm box
+        cv2.rectangle(mask, (120,14),(1164,703), 255, cv2.FILLED)  # board box
+        cv2.rectangle(mask, (562,361),(720,720), 0, cv2.FILLED)  # arm box
 
-        cv2.rectangle(cnt_image, (98,14),(1190,703), (255, 0, 0), 2)  # board box
-        cv2.rectangle(cnt_image, (550,400),(720,720), (255, 0, 0), 2)  # arm box
+        cv2.rectangle(cnt_image, (120,14),(1164,703), (255, 0, 0), 2)  # board box
+        cv2.rectangle(cnt_image, (562,361),(720,720), (255, 0, 0), 2)  # arm box
 
-        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 10, 990), mask)
+        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 10, 991), mask)
         # thresh = cv2.bitwise_and(cv2.inRange(depth_data, 500, 960), mask)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -303,7 +317,8 @@ class Camera():
             #print(color, int(theta), cx, cy)
 
         self.BlockContourImg = cnt_image
-        cv2.imshow("Block detections window", cv2.cvtColor(self.BlockContourImg, cv2.COLOR_RGB2BGR))
+        cv2.imshow("Block detections window", cv2.cvtColor(self.BlockContourImg, cv2.COLOR_RGB2BGR))  # update rate??
+        # cv2.waitKey(1)  # waits 1 ms
 
 
 
@@ -522,7 +537,7 @@ class VideoThread(QThread):
             cv2.namedWindow("Depth window", cv2.WINDOW_NORMAL)
             cv2.namedWindow("Tag window", cv2.WINDOW_NORMAL)
             cv2.namedWindow("Grid window", cv2.WINDOW_NORMAL)
-            cv2.namedWindow("Block detections window", cv2.WINDOW_NORMAL)
+            # cv2.namedWindow("Block detections window", cv2.WINDOW_NORMAL)
             time.sleep(0.5)
         try:
             while rclpy.ok():
@@ -553,9 +568,6 @@ class VideoThread(QThread):
                     cv2.imshow("Grid window",
                         cv2.cvtColor(self.camera.GridFrame, cv2.COLOR_RGB2BGR))
                     
-                    cv2.imshow("Block detections window",
-                        cv2.cvtColor(self.camera.BlockContourImg, cv2.COLOR_RGB2BGR))
-
                     cv2.waitKey(3)
                     time.sleep(0.03)
         except KeyboardInterrupt:

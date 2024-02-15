@@ -6,7 +6,6 @@ import time
 import numpy as np
 import rclpy
 from rxarm import RXArm, RXArmThread
-from kinematics import IK_geometric
 from camera import Camera
 import sys
 import cv2
@@ -161,18 +160,6 @@ class StateMachine():
 
         if self.next_state == "clickImplementation":
             self.clickImplementation()
-        
-        if self.next_state == "eventOne":
-            self.eventOne()
-        
-        if self.next_state == "eventTwo":
-            self.eventTwo()
-
-        if self.next_state == "eventThree":
-            self.eventThree()
-
-        if self.next_state == "eventFour":
-            self.eventFour()
 
 
 
@@ -235,6 +222,18 @@ class StateMachine():
             
         self.next_state = "idle"
    
+    # def close_gripper(self):
+    #     print("in close gripper")
+    #     self.status_message = "closing gripper"
+    #     self.rxarm.gripper.grasp()
+    #     self.gripper_open_flag = False
+
+    # def open_gripper(self):
+    #     print("in open gripper")
+    #     self.status_message = "releasing gripper"
+    #     self.rxarm.gripper.release()
+    #     self.gripper_open_flag = True
+
     def record_waypoint(self):
         print("entered record button function")
         sys.stdout.flush()
@@ -372,21 +371,59 @@ class StateMachine():
         sys.stdout.flush()
 
         # Get click location from user
+
         while(self.camera.new_click == False):
-            pass 
+            pass
+      
         self.camera.new_click = False
 
-        # Get block location
+        # Temp values
         x = round(self.camera.cs_x[0],2)
         y = round(self.camera.cs_y[0],2)
         z = round(self.camera.cs_z[0],2)
         phi = 1.57
         theta = 1.57
         psi = 1.57 
+
+       
+        # Add 100mm to z position so we don't smash into board
+        z += 100
         pose = [x, y, z, phi, theta, psi]
 
-        # Pick up block
-        self.pickup(pose)
+        print(pose)
+    
+        # Get needed angles from IK
+        from kinematics import IK_geometric
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        
+        # Send arm to initial position
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
+        time.sleep(3)
+    
+        # Move above desired position (+100mm in Z)
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+
+        # Lower the gripper
+        z = -5
+        pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+        # Close the gripper
+        self.rxarm.close_gripper()
+        time.sleep(3)
+
+        # Send arm to initial position
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
+        time.sleep(3)
+
 
 
         # Part 2: Drop off the block
@@ -394,269 +431,57 @@ class StateMachine():
         self.status_message = "Click location to drop block"
         sys.stdout.flush()
 
+
         # Get click location from user
+
         while(self.camera.new_click == False):
             pass
+      
         self.camera.new_click = False
 
+        # Temp values
         x = self.camera.cs_x[0]
         y = self.camera.cs_y[0]
         z = self.camera.cs_z[0]
         phi = 1.57
         theta = 1.57
         psi = 1.57 
+
+        # Add 100mm to z position so we don't smash into board
+        z += 100
         pose = [x, y, z, phi, theta, psi]
-
-        self.dropoff(pose)
-
-        # Set status back to idle
-        self.next_state = "idle"
-
-# COMPETITION EVENT CODE
-
-    def eventOne(self):
-        # Set state to eventOne
-        self.current_state = "eventOne"
-        self.status_message = "Event One"
-
-        # # Initialize dropoff location
-        # xdL = 100;
-        # xdS = -100;
-        # yd = -25;
-        # zd = 5;
-
-        # # Move large blocks to the right
-        # for (LB in largeBlocks):
-        #     x = LB.x
-        #     y = LB.y
-        #     z = LB.z
-        #     phi = 1.57
-        #     theta = 1.57
-        #     psi = 1.57 
-        #     pose = [x, y, z, phi, theta, psi]
-        
-        #     self.pickup(pose)
-        
-        #     xdL += 60
-        #     pose = [xdL, yd, zd, phi, theta, psi]
-        
-        #     self.dropoff(pose)
-        
-        
-
-        # # Move small blocks to the left
-        # for (SB in smallBlocks): 
-        #     x = SB.x
-        #     y = SB.y
-        #     z = SB.z
-        #     phi = 1.57
-        #     theta = 1.57
-        #     psi = 1.57 
-        #     pose = [x, y, z, phi, theta, psi]
-        
-        #     self.pickup(pose)
-        
-        #     xdL -= 40
-        #     pose = [xdS, yd, zd, phi, theta, psi]
-        
-            self.dropoff(pose)
-
-
-        # Set status back to idle
-        self.next_state = "idle"
-
-
-        
-    def eventTwo(self):
-        # Set state to eventTwo
-        self.current_state = "eventTwo"
-        self.status_message = "Event Two"
-
-        # # Initialize variables
-        # AT1x = -250  
-        # AT1y = 275
-        # AT1z = 0
-        # AT2x = 250  
-        # AT2y = 275
-        # AT2z = 0
-
-
-        # # Stack blocks on April Tags
-
-        # # Three large blocks on (-250,275)
-        # for (LB in largeBlocks):
-        #     x = LB.x
-        #     y = LB.y
-        #     z = LB.z
-        #     phi = 1.57
-        #     theta = 1.57
-        #     psi = 1.57 
-        #     pose = [x, y, z, phi, theta, psi]
-
-        #     self.pickup(pose)
-        
-        #     AT1z += 40
-        #     pose = [AT1x, AT1y, AT1z, phi, theta, psi]
-        
-        #     self.dropoff(pose)
-        
-        #  # Three small blocks on (250,275)
-        # for (SB in smallBlocks):
-        #     x = SB.x
-        #     y = SB.y
-        #     z = SB.z
-        #     phi = 1.57
-        #     theta = 1.57
-        #     psi = 1.57 
-        #     pose = [x, y, z, phi, theta, psi]
-
-        #     self.pickup(pose)
-        
-        #     AT2z += 40
-        #     pose = [AT2x, AT2y, AT2z, phi, theta, psi]
-        
-        #     self.dropoff(pose)
-
-        # Set status back to idle
-        self.next_state = "idle"
-
-
-
-    def eventThree(self):
-        # Set state to eventThree
-        self.current_state = "eventThree"
-        self.status_message = "Event Three"
-
-        # Arrange blocks in ROYGBV order
-
-        # Large block row
-        # Red Block
-
-        # Orange Block
-
-        # Yellow Block
-
-        # Green Block
-
-        # Blue Block
-
-        # Violet Block
-
-
-        # Small block row
-        # Red Block
-
-        # Orange Block
-
-        # Yellow Block
-
-        # Green Block
-
-        # Blue Block
-
-        # Violet Block
-
-
-        # Set status back to idle
-        self.next_state = "idle"
-
-
-    def eventFour(self):
-        # Set state to eventFour
-        self.current_state = "eventFour"
-        self.status_message = "Event Four"
-
-        # Set status back to idle
-        self.next_state = "idle"
-
-
-    def bonus(self):
-        # Set state to bonus
-        self.current_state = "bonus"
-        self.status_message = "Bonus"
-
-        # Set status back to idle
-        self.next_state = "idle"
-
-
-
-
-    # Some useful control functions:
-        
-    def goto(self,pose):
-        
+    
+        # Get needed angles from IK
+        from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
         
-        # Move above desired position
+
+        # Move above desired position (+100mm in Z)
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
         time.sleep(3)
 
-    def pickup(self, pose): 
 
-        # Assign vars
-        x = pose[0]
-        y = pose[1]
-        z = pose[2]
-        phi = pose[3]
-        theta = pose[4]
-        psi = pose[5]
-
-        # Go above pickup position
-        self.goto(pose)
-       
         # Lower the gripper
-        z -= 50
+        z = -5
         pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
         
-        # Go to pickup position
-        self.goto(pose)
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
 
         # Close the gripper
         self.rxarm.open_gripper()
         time.sleep(3)
 
-        # Raise the gripper
-        z += 50
-        pose = [x, y, z, phi, theta, psi]
-        
-        # Go above pickup position
-        self.goto(pose)
-
-
-    def dropoff(self, pose): 
-
-        # Assign vars
-        x = pose[0]
-        y = pose[1]
-        z = pose[2]
-        phi = pose[3]
-        theta = pose[4]
-        psi = pose[5]
-
-        # Go above pickup position
-        self.goto(pose)
-       
-        # Lower the gripper
-        z -= 50
-        pose = [x, y, z, phi, theta, psi]
-        
-        # Go to pickup position
-        self.goto(pose)
-
-        # Close the gripper
-        self.rxarm.close_gripper()
+        # Send arm to initial position
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
         time.sleep(3)
 
-        # Raise the gripper
-        z += 50
-        pose = [x, y, z, phi, theta, psi]
-        
-        # Go above pickup position
-        self.goto(pose)
-
-    
-    
-
+        # Set status back to idle
+        self.next_state = "idle"
 
 
 class StateMachineThread(QThread):
