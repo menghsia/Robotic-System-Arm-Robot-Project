@@ -490,6 +490,10 @@ class StateMachine():
         z += 100
         pose = [x, y, z, phi, theta, psi]
 
+        # Offset Y
+        y = y - 25
+        x = x - 25
+
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -500,7 +504,7 @@ class StateMachine():
 
 
         # Lower the gripper
-        z += -100
+        z = z - 160
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
@@ -508,14 +512,14 @@ class StateMachine():
     
         # Move to desired position
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
-        time.sleep(2)
+        time.sleep(3)
 
         # Close the gripper
         self.rxarm.close_gripper()
         time.sleep(3)
 
             # Raise the gripper
-        z += 100
+        z += 150
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
@@ -537,6 +541,10 @@ class StateMachine():
         z += 100
         pose = [x, y, z, phi, theta, psi]
 
+        # Offset Y
+        y = y - 25
+        x = x - 25
+
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -547,7 +555,7 @@ class StateMachine():
 
 
         # Lower the gripper
-        z += -100
+        z += -160
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK

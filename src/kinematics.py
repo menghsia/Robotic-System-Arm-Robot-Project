@@ -211,9 +211,6 @@ def IK_geometric(dh_params, pose):
 
     # Wrist Position
     wrist = np.transpose([x,y,z]) - np.dot(np.dot(-174, euler2mat(phi, theta, psi)),np.transpose([0,0,1]))
-    print(np.dot(-174, euler2mat(phi, theta, psi)))
-    print("End Effector Position: ", pose)
-    print("Wrist Position: ", wrist)
 
     xc = wrist[0]
     yc = wrist[1]
