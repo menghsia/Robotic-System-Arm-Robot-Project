@@ -371,6 +371,18 @@ class Camera():
 
 
 
+        # For each block detected...
+
+        # LOCATIONS: world coordinates
+        # SIZE: 0 = small, 1 = large
+        # COLOR: 0 = red, 1 = orange, 2 = yellow, 3 = green, 4 = blue, 5 = violet
+        # ROT: rotation angle of block (rad)
+
+        #parameters = [LOCATIONS, SIZE, COLOR, ROT]
+        # self.block_detections.append(parameters)
+
+
+
     def detectBlocksInDepthImage(self):
         """!
         @brief      Detect blocks from depth

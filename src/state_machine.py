@@ -455,18 +455,22 @@ class StateMachine():
 
         for block in self.camera.blockdections: 
             # Find all the small blocks in the workspace
-            if block is small:
+            if block[3] == 0: # block is small
                 smallBlocks.append(block)
             
             # Find all the small blocks in the workspace
-            if block is large:
+            if block[3] == 1: # block is large
                 largeBlocks.append(block)
 
+        # Move blocks out of target area
+                
 
         # Move all small blocks to the left
         for block in smallBlocks: 
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+
             # Pick up the block
-            self.pickup(block)
+            self.pickup(pose)
 
             # Drop off the block
             offsetSmall += 50
@@ -475,8 +479,10 @@ class StateMachine():
 
         # Move all large blocks to the right
         for block in largeBlocks: 
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+
             # Pick up the block
-            self.pickup(block)
+            self.pickup(pose)
 
             # Drop off the block
             offsetLarge += 50
@@ -501,6 +507,17 @@ class StateMachine():
         # Initialize lists of block locations
         smallBlocks = []
         largeBlocks = []
+
+        for block in self.camera.blockdections: 
+            # Find all the small blocks in the workspace
+            if block is small:
+                smallBlocks.append(block)
+            
+            # Find all the small blocks in the workspace
+            if block is large:
+                largeBlocks.append(block)
+
+        # Move blocks out of target area
 
         # Stack small blocks on left apriltag
         for block in smallBlocks:
@@ -529,6 +546,36 @@ class StateMachine():
 
         # GripperDownPose = [1.57,1.57,1.57]
         # GripperHorizontalPose = [3.12, 1.57, np.atan2(y,x)]
+
+        # Set drop zone offsets to 0 
+        offsetLarge = 0
+        offsetSmall = 0
+
+        # Initialize lists of block locations
+        smallBlocks = []
+        largeBlocks = []
+
+        # Move blocks out of target area
+
+        # Place small blocks in line 
+        for block in smallBlocks:
+            # Pick up the block
+            self.pickup(block)
+
+            offsetSmall += 50
+            DropLocation = [-250 + offsetSmall, 275, 0, 1.57, 1.57, 1.57]
+            self.dropoff(DropLocation)
+
+        # Stack large blocks in line
+        for block in largeBlocks:
+            # Pick up the block
+            self.pickup(block)
+
+            offsetLarge += 25
+            DropLocation = [-250 + offsetLarge, 200, 0, 1.57, 1.57, 1.57]
+            self.dropoff(DropLocation)
+
+
 
         # Set status back to idle
         self.next_state = "idle"
