@@ -236,20 +236,21 @@ class Camera():
                     locations in self.block_detections
         """
 
-        if self.modified_warped_img_flag:
-            print(type(self.warped_img))
-            rgb_image = self.warped_img #NDArray[uint8]
-            cnt_image = self.warped_img
+        # if self.modified_warped_img_flag:
+        #     print(type(self.warped_img))
+        #     rgb_image = self.warped_img #NDArray[uint8]
+        #     cnt_image = self.warped_img
         
-        else:
-            rgb_image = self.VideoFrame.copy() #NDArray[uint8]
-            cnt_image = self.VideoFrame.copy()
+        # else:
+        rgb_image = self.VideoFrame.copy() #NDArray[uint8]
+        cnt_image = self.VideoFrame.copy()
         
         depth_data = self.DepthFrameRaw.copy() 
         h, w = rgb_image.shape[:2]
 
         if self.world_coord_calib_flag:
             T_i = self.cam_extrinsic_maxtrix
+            print("using PnP calibrated extrinsic matrix now")
         else:
             T_i = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
 
@@ -271,7 +272,7 @@ class Camera():
 
         if self.world_coord_calib_flag:      
             depth_data = cv2.warpPerspective(depth_data, self.cam_homography_matrix, (w, h), flags=cv2.INTER_LINEAR)
-            print("depth:",depth_data)
+            # print("depth:",depth_data)
 
     
         mask = np.zeros_like(depth_data, dtype=np.uint8)
