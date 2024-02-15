@@ -80,14 +80,15 @@ class Camera():
         {'id': 'blue', 'color': (0, 105, 196)},
         {'id': 'violet', 'color': (56, 31, 185)})
         )
+        # new color
         # self.colors = list((
-        # {'id': 'red', 'range': ((0, 0, 117), (20, 20, 137))},
-        # {'id': 'orange', 'range': ((20, 65, 140), (40, 85, 160))},
-        # {'id': 'yellow', 'range': ((20, 140, 180), (40, 160, 220))},
-        # {'id': 'green', 'range': ((10, 50, 10), (30, 70, 30))},
-        # {'id': 'blue', 'range': ((90, 40, 0), (110, 60, 20))},
-        # {'id': 'violet', 'range': ((90, 30, 70), (110, 50, 90))}
-        # ))
+        # {'id': 'red', 'color': 120, range: (115,180)},
+        # {'id': 'orange', 'color': 110, range: (100,114)},
+        # {'id': 'yellow', 'color': 90, range: (70,100)},
+        # {'id': 'green', 'color': 50, range: (43,69)},
+        # {'id': 'blue', 'color': 30, range: (16,42)},
+        # {'id': 'violet', 'color': 8, range: (0,15)})
+        # )
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -130,6 +131,28 @@ class Camera():
             if d < min_dist[0]:
                 min_dist = (d, label["id"])
         return min_dist[1]
+        
+    # def retrieve_area_color(self, data, contour, labels):
+    #     mask = np.zeros(data.shape[:2], dtype="uint8")
+    #     cv2.drawContours(mask, [contour], -1, 255, -1)
+    #     img_hsv=cv2.cvtColor(data, cv2.COLOR_BGR2HSV)
+    #     mean = cv2.mean(img_hsv, mask=mask)[0]
+    #     find_color=False
+        
+    #     for label in labels:
+    #     	color_range=label["range"]
+    #     	low,high=color_range[0],color_range[1]
+    #     	if low<=mean and mean<=high:
+    #     		find_color=True
+    #     		return label["id"]
+    #     if not find_color:
+    #     	min_dist = (np.inf, None)
+    #     	for label in labels:
+    #         		d=(label["color"]-mean)*(label["color"]-mean)
+    #         		if d < min_dist[0]:
+    #             		min_dist = (d, label["id"])
+    #     	return min_dist[1]
+
 
     def processVideoFrame(self):
         """!
