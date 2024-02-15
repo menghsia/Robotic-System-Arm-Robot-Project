@@ -494,6 +494,32 @@ class StateMachine():
         # GripperDownPose = [1.57,1.57,1.57]
         # GripperHorizontalPose = [3.12, 1.57, np.atan2(y,x)]
 
+        # Set drop zone offsets to 0 
+        offsetLarge = 0
+        offsetSmall = 0
+
+        # Initialize lists of block locations
+        smallBlocks = []
+        largeBlocks = []
+
+        # Stack small blocks on left apriltag
+        for block in smallBlocks:
+            # Pick up the block
+            self.pickup(block)
+
+            offsetSmall += 25
+            leftATLocation = [-250, 275, offsetSmall, 1.57, 1.57, 1.57]
+            self.dropoff(leftATLocation)
+
+        # Stack large blocks on right apriltag
+        for block in largeBlocks:
+            # Pick up the block
+            self.pickup(block)
+
+            offsetSmall += 25
+            rightATLocation = [-250, 275, offsetLarge, 1.57, 1.57, 1.57]
+            self.dropoff(rightATLocation)
+
         # Set status back to idle
         self.next_state = "idle"
 
