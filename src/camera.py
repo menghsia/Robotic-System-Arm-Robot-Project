@@ -72,23 +72,32 @@ class Camera():
         # {'id': 'green', 'color': (20, 60, 20)},
         # {'id': 'blue', 'color': (100, 50, 0)},
         # {'id': 'violet', 'color': (100, 40, 80)}))
-        self.colors = list((
-        {'id': 'red', 'color': (162, 0, 16)},
-        {'id': 'orange', 'color': (238, 105, 29)},
-        {'id': 'yellow', 'color': (255, 210, 24)},
-        {'id': 'green', 'color': (18, 122, 70)},
-        {'id': 'blue', 'color': (0, 105, 196)},
-        {'id': 'violet', 'color': (56, 31, 185)})
-        )
+        # self.colors = list((
+        # {'id': 'red', 'color': (162, 0, 16)},
+        # {'id': 'orange', 'color': (238, 105, 29)},
+        # {'id': 'yellow', 'color': (255, 210, 24)},
+        # {'id': 'green', 'color': (18, 122, 70)},
+        # {'id': 'blue', 'color': (0, 105, 196)},
+        # {'id': 'violet', 'color': (56, 31, 185)})
+        # )
         # new color
         # self.colors = list((
         # {'id': 'red', 'color': 120, 'range': (115,180)},
         # {'id': 'orange', 'color': 110, 'range': (100,114)},
         # {'id': 'yellow', 'color': 90, 'range': (70,100)},
-        # {'id': 'green', 'color': 50, 'range': (43,69)},
-        # {'id': 'blue', 'color': 30, 'range': (16,42)},
-        # {'id': 'violet', 'color': 8, 'range': (0,15)})
+        # {'id': 'green', 'color': 50, 'range': (40,69)},
+        # {'id': 'blue', 'color': 30, 'range': (22,35)},
+        # {'id': 'violet', 'color': 8, 'range': (0,18)})
         # )
+        
+        self.colors = list((
+        {'id': 'red', 'color': 120, 'range': (115,180)},
+        {'id': 'orange', 'color': 110, 'range': (100,114)},
+        {'id': 'yellow', 'color': 90, 'range': (70,100)},
+        {'id': 'green', 'color': 50, 'range': (43,69)},
+        {'id': 'blue', 'color': 30, 'range': (20,39)},
+        {'id': 'violet', 'color': 8, 'range': (0,19)})
+        )
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -113,45 +122,45 @@ class Camera():
         self.firstbdflag = True
 
 
-    def retrieve_area_color(self, data, contour, labels):
-        mask = np.zeros(data.shape[:2], dtype="uint8")
-        cv2.drawContours(mask, [contour], -1, 255, -1)
-        mean = cv2.mean(data, mask=mask)[:3]
-
-        # for label in labels:
-        #     color_range=label["range"]
-        #     low, high = np.array(color_range[0]),np.array(color_range[1])
-        # if all(low<=mean)and all(mean<=high):
-        #     return label["id"]
-        # return "Unknown"
-
-        min_dist = (np.inf, None)
-        for label in labels:
-            d = np.linalg.norm(label["color"] - np.array(mean))
-            if d < min_dist[0]:
-                min_dist = (d, label["id"])
-        return min_dist[1]
-        
     # def retrieve_area_color(self, data, contour, labels):
     #     mask = np.zeros(data.shape[:2], dtype="uint8")
     #     cv2.drawContours(mask, [contour], -1, 255, -1)
-    #     img_hsv=cv2.cvtColor(data, cv2.COLOR_BGR2HSV)
-    #     mean = cv2.mean(img_hsv, mask=mask)[0]
-    #     find_color=False
-        
+    #     mean = cv2.mean(data, mask=mask)[:3]
+
+    #     # for label in labels:
+    #     #     color_range=label["range"]
+    #     #     low, high = np.array(color_range[0]),np.array(color_range[1])
+    #     # if all(low<=mean)and all(mean<=high):
+    #     #     return label["id"]
+    #     # return "Unknown"
+
+    #     min_dist = (np.inf, None)
     #     for label in labels:
-    #     	color_range=label["range"]
-    #     	low,high=color_range[0],color_range[1]
-    #     	if low<=mean and mean<=high:
-    #     		find_color=True
-    #     		return label["id"]
-    #     if not find_color:
-    #     	min_dist = (np.inf, None)
-    #     	for label in labels:
-    #         		d=(label["color"]-mean)*(label["color"]-mean)
-    #         		if d < min_dist[0]:
-    #             		min_dist = (d, label["id"])
-    #     	return min_dist[1]
+    #         d = np.linalg.norm(label["color"] - np.array(mean))
+    #         if d < min_dist[0]:
+    #             min_dist = (d, label["id"])
+    #     return min_dist[1]
+        
+    def retrieve_area_color(self, data, contour, labels):
+        mask = np.zeros(data.shape[:2], dtype="uint8")
+        cv2.drawContours(mask, [contour], -1, 255, -1)
+        img_hsv=cv2.cvtColor(data, cv2.COLOR_BGR2HSV)
+        mean = cv2.mean(img_hsv, mask=mask)[0]  #mean of hue
+        find_color=False
+        
+        for label in labels:
+            color_range=label["range"]
+            low,high=color_range[0],color_range[1]
+            if (low<=mean) and (mean<=high):
+                find_color=True
+                return label["id"]
+        if not find_color:
+            min_dist = (np.inf, None)
+            for label in labels:
+                d=(label["color"]-mean)*(label["color"]-mean)
+                if d < min_dist[0]:
+                    min_dist = (d, label["id"])
+            return min_dist[1]
 
 
     def processVideoFrame(self):
@@ -306,13 +315,22 @@ class Camera():
         [-3.78616658e-02, -9.77439597e-01,  2.07793954e-01,  1.10163653e+02],
         [-6.67942069e-03, -2.07690863e-01, -9.78171708e-01,  1.03705217e+03],
         [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])
-
+        # desired_matrix=np.array([[ 9.99260666e-01, -3.84231535e-02,  1.33479174e-03,  3.05227949e+01],
+        # [-3.78616658e-02, -9.77439597e-01,  2.07793954e-01,  1.10163653e+02],
+        # [-6.67942069e-03, -2.07690863e-01, -9.78171708e-01,  1.03705217e+03],
+        # [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])
+        
         # if self.world_coord_calib_flag:
-            # T_i = self.cam_extrinsic_maxtrix 
-            # T_i=np.dot(T_i,np.array([[1,0,0,0],[0,0.99939083,-0.0348995,0],[0,0.0348995,0.99939083,0],[0,0,0,1]]))  #old one
-            # T_i=np.dot(T_i,np.array([[1.0, 2.1954964e-18, 1.35375648e-19, 3.55271368e-15],
-            #[-2.46374145e-11, 0.999390827, -0.      034899497, 3.69089278e-07],
-            #[1.62571546e-11, 0.0348994971, 0.999390827, 5.41551799e-08],[0,0,0,1.0]]))
+        #     T_i = self.cam_extrinsic_maxtrix 
+        #     # T_i=np.dot(T_i,np.array([[1,0,0,0],[0,0.99939083,-0.0348995,0],[0,0.0348995,0.99939083,0],[0,0,0,1]]))  #old one
+        #     # T_i=np.dot(T_i,np.array([[1.0, 2.1954964e-18, 1.35375648e-19, 3.55271368e-15],
+        #     #[-2.46374145e-11, 0.999390827, -0.      034899497, 3.69089278e-07],
+        #     #[1.62571546e-11, 0.0348994971, 0.999390827, 5.41551799e-08],[0,0,0,1.0]]))
+        #     transform_matrix=np.array(np.dot(desired_matrix,np.linalg.inv(T_i)))
+
+        #     T_i=np.dot(transform_matrix,T_i)
+        #     # print(T_i)
+            
 
         # else:
         #     T_i = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
@@ -346,12 +364,13 @@ class Camera():
         cv2.rectangle(cnt_image, (562,361),(720,720), (255, 0, 0), 2)  # arm box
 
         thresh = cv2.bitwise_and(cv2.inRange(depth_data, 10, 991), mask)
+        # cv2.imshow("Block detections window", thresh)  # update rate??
         # thresh = cv2.bitwise_and(cv2.inRange(depth_data, 500, 960), mask)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         cv2.drawContours(cnt_image, contours, -1, (0,255,255), thickness=1)
 
-        for contour in contours:
+        for contour in contours:  #TODO: if contours are below a certain size then discard
             color = self.retrieve_area_color(rgb_image, contour, self.colors)
             theta = cv2.minAreaRect(contour)[2]
             M = cv2.moments(contour)
