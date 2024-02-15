@@ -82,12 +82,12 @@ class Camera():
         )
         # new color
         # self.colors = list((
-        # {'id': 'red', 'color': 120, range: (115,180)},
-        # {'id': 'orange', 'color': 110, range: (100,114)},
-        # {'id': 'yellow', 'color': 90, range: (70,100)},
-        # {'id': 'green', 'color': 50, range: (43,69)},
-        # {'id': 'blue', 'color': 30, range: (16,42)},
-        # {'id': 'violet', 'color': 8, range: (0,15)})
+        # {'id': 'red', 'color': 120, 'range': (115,180)},
+        # {'id': 'orange', 'color': 110, 'range': (100,114)},
+        # {'id': 'yellow', 'color': 90, 'range': (70,100)},
+        # {'id': 'green', 'color': 50, 'range': (43,69)},
+        # {'id': 'blue', 'color': 30, 'range': (16,42)},
+        # {'id': 'violet', 'color': 8, 'range': (0,15)})
         # )
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
