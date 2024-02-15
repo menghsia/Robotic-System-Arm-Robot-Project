@@ -28,8 +28,6 @@ sys.path.append('../../interbotix_ws/src/interbotix_ros_toolboxes/interbotix_xs_
 from arm import InterbotixManipulatorXS
 from mr_descriptions import ModernRoboticsDescription as mrd
 
-print("import success rxarm.py")
-
 """
 TODO: Implement the missing functions and add anything you need to support them
 """
@@ -211,14 +209,7 @@ class RXArm(InterbotixManipulatorXS):
 
         @return     The EE pose as [x, y, z, phi] or as needed.
         """
-        # The end effector is the 5th link
-        EE_link = 5
-
-        joint_angles = self.get_positions()
-
-        EndEffectorPose = get_pose_from_T(FK_dh(self.dh_params, joint_angles, EE_link))
-
-        return EndEffectorPose
+        return [0, 0, 0, 0]
 
     @_ensure_initialized
     def get_wrist_pose(self):
