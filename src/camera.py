@@ -65,14 +65,29 @@ class Camera():
         self.cam_homography_matrix = np.array([])
         self.cam_extrinsic_maxtrix = 0
         self.world_coord_calib_flag = False
+        # self.colors = list((
+        # {'id': 'red', 'color': (10, 10, 127)},
+        # {'id': 'orange', 'color': (30, 75, 150)},
+        # {'id': 'yellow', 'color': (30, 150, 200)},
+        # {'id': 'green', 'color': (20, 60, 20)},
+        # {'id': 'blue', 'color': (100, 50, 0)},
+        # {'id': 'violet', 'color': (100, 40, 80)}))
         self.colors = list((
-        {'id': 'red', 'color': (10, 10, 127)},
-        {'id': 'orange', 'color': (30, 75, 150)},
-        {'id': 'yellow', 'color': (30, 150, 200)},
-        {'id': 'green', 'color': (20, 60, 20)},
-        {'id': 'blue', 'color': (100, 50, 0)},
-        {'id': 'violet', 'color': (100, 40, 80)})
+        {'id': 'red', 'color': (162, 0, 16)},
+        {'id': 'orange', 'color': (238, 105, 29)},
+        {'id': 'yellow', 'color': (255, 210, 24)},
+        {'id': 'green', 'color': (18, 122, 70)},
+        {'id': 'blue', 'color': (0, 105, 196)},
+        {'id': 'violet', 'color': (56, 31, 185)})
         )
+        # self.colors = list((
+        # {'id': 'red', 'range': ((0, 0, 117), (20, 20, 137))},
+        # {'id': 'orange', 'range': ((20, 65, 140), (40, 85, 160))},
+        # {'id': 'yellow', 'range': ((20, 140, 180), (40, 160, 220))},
+        # {'id': 'green', 'range': ((10, 50, 10), (30, 70, 30))},
+        # {'id': 'blue', 'range': ((90, 40, 0), (110, 60, 20))},
+        # {'id': 'violet', 'range': ((90, 30, 70), (110, 50, 90))}
+        # ))
 
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -101,6 +116,14 @@ class Camera():
         mask = np.zeros(data.shape[:2], dtype="uint8")
         cv2.drawContours(mask, [contour], -1, 255, -1)
         mean = cv2.mean(data, mask=mask)[:3]
+
+        # for label in labels:
+        #     color_range=label["range"]
+        #     low, high = np.array(color_range[0]),np.array(color_range[1])
+        # if all(low<=mean)and all(mean<=high):
+        #     return label["id"]
+        # return "Unknown"
+
         min_dist = (np.inf, None)
         for label in labels:
             d = np.linalg.norm(label["color"] - np.array(mean))
@@ -255,16 +278,16 @@ class Camera():
         depth_data = self.DepthFrameRaw.copy() 
         h, w = rgb_image.shape[:2]
 
-        # TODO!!! Multiply PnP-solved extrinsic matrix by a positive 2 degree rotation homogeneous matrix!!
+        #TODO!!! Multiply PnP-solved extrinsic matrix by a positive 2 degree rotation homogeneous matrix!!
         T_i= np.array([[ 9.99260666e-01, -3.84231535e-02,  1.33479174e-03,  3.05227949e+01],
         [-3.78616658e-02, -9.77439597e-01,  2.07793954e-01,  1.10163653e+02],
         [-6.67942069e-03, -2.07690863e-01, -9.78171708e-01,  1.03705217e+03],
         [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])
 
         # if self.world_coord_calib_flag:
-        #     T_i = self.cam_extrinsic_maxtrix
-        #     # print("using PnP calibrated extrinsic matrix now")
-        #     # print("pnp extrinsic matrix: ", T_i)
+        #     T_i = self.cam_extrinsic_maxtrix 
+        #     T_i=np.dot(T_i,np.array([[1,0,0,0],[0,0.99939083,-0.0348995,0],[0,0.0348995,0.99939083,0],[0,0,0,1]]))
+
         # else:
         #     T_i = np.array([[1,0,0,0],[0,-0.9797,0,190],[0,0.2004,-0.9797,970],[0,0,0,1]])
 

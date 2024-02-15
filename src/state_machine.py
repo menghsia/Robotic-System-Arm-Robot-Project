@@ -161,6 +161,20 @@ class StateMachine():
         if self.next_state == "clickImplementation":
             self.clickImplementation()
 
+        if self.next_state == "eventOne":
+            self.eventOne()
+
+        if self.next_state == "eventTwo":
+            self.eventTwo()
+
+        if self.next_state == "eventThree":
+            self.eventThree()
+
+        if self.next_state == "eventFour":
+            self.eventFour()
+
+        if self.next_state == "Bonus":
+            self.Bonus()
 
 
     """Functions run for each state"""
@@ -341,6 +355,8 @@ class StateMachine():
         self.camera.world_coord_calib_flag = True
         self.status_message = "Calibration - Completed Calibration"
 
+        self.next_state = "idle"
+
     """ TODO """
     def detect(self):
         """!
@@ -365,6 +381,8 @@ class StateMachine():
         # Set state to clickImplementation
         self.current_state = "clickImplementation"
 
+        GripperDownPose = [1.57,1.57,1.57]
+
         # Part 1: Pick up a block
         # Message to tell user to click on a block
         self.status_message = "Click on block to pickup"
@@ -377,54 +395,16 @@ class StateMachine():
       
         self.camera.new_click = False
 
-        # Temp values
-        x = round(self.camera.cs_x[0],2)
-        y = round(self.camera.cs_y[0],2)
-        z = round(self.camera.cs_z[0],2)
-        phi = 1.57
-        theta = 1.57
-        psi = 1.57 
-
-       
-        # Add 100mm to z position so we don't smash into board
-        z += 100
-        pose = [x, y, z, phi, theta, psi]
-
-        print(pose)
-    
-        # Get needed angles from IK
-        from kinematics import IK_geometric
-        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        # Pickup Location
+        x = round(self.camera.cs_x,2)
+        y = round(self.camera.cs_y,2)
+        z = round(self.camera.cs_z,2)
+        phi = GripperDownPose[0]
+        theta = GripperDownPose[1]
+        psi = GripperDownPose[2]
         
-        # Send arm to initial position
-        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
-        time.sleep(3)
-    
-        # Move above desired position (+100mm in Z)
-        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
-        time.sleep(3)
-
-
-        # Lower the gripper
-        z = -5
         pose = [x, y, z, phi, theta, psi]
-
-        # Get needed angles from IK
-        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
-        
-        # Move to desired position
-        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
-        time.sleep(3)
-
-        # Close the gripper
-        self.rxarm.close_gripper()
-        time.sleep(3)
-
-        # Send arm to initial position
-        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
-        time.sleep(3)
-
-
+        self.pickup(pose)
 
         # Part 2: Drop off the block
         # Message to tell user to click on a drop location
@@ -433,28 +413,86 @@ class StateMachine():
 
 
         # Get click location from user
-
         while(self.camera.new_click == False):
             pass
       
         self.camera.new_click = False
 
-        # Temp values
-        x = self.camera.cs_x[0]
-        y = self.camera.cs_y[0]
-        z = self.camera.cs_z[0]
-        phi = 1.57
-        theta = 1.57
-        psi = 1.57 
+        # Dropoff Location
+        x = self.camera.cs_x
+        y = self.camera.cs_y
+        z = self.camera.cs_z
+        phi = GripperDownPose[0]
+        theta = GripperDownPose[1]
+        psi = GripperDownPose[2]
+
+        pose = [x, y, z, phi, theta, psi]
+        self.dropoff(pose)
+
+        # Send arm to initial position
+        self.setPosHome()
+        
+        # Set status back to idle
+        self.next_state = "idle"
+
+
+    # COMPETITION FUNCTIONS
+
+    def eventOne(self):
+        print("Event One")
+
+        # Set status back to idle
+        self.next_state = "idle"
+
+    def eventTwo(self):
+        print("Event Two")
+        # Set status back to idle
+        self.next_state = "idle"
+
+
+    def eventThree(self):
+        print("Event Three")
+
+        # Set status back to idle
+        self.next_state = "idle"
+
+
+    def eventFour(self):
+        print("Event Four")
+        # Set status back to idle
+        self.next_state = "idle"
+
+
+    def Bonus(self):
+        print("Bonus")
+
+        # Set status back to idle
+        self.next_state = "idle"
+
+
+
+    # COMPETITION HELPER FUNCTIONS
+
+    def setPosHome(self): 
+        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
+        time.sleep(3)
+
+
+    def pickup(self, pose):
+        x = pose[0]
+        y = pose[1]
+        z = pose[2]
+        phi = pose[3]
+        theta = pose[4]
+        psi = pose[5]
 
         # Add 100mm to z position so we don't smash into board
         z += 100
         pose = [x, y, z, phi, theta, psi]
-    
+
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
-        
 
         # Move above desired position (+100mm in Z)
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
@@ -462,26 +500,81 @@ class StateMachine():
 
 
         # Lower the gripper
-        z = -5
+        z += -100
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
-        
+    
         # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(2)
+
+        # Close the gripper
+        self.rxarm.close_gripper()
+        time.sleep(3)
+
+            # Raise the gripper
+        z += 100
+        pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+    
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(2)
+
+    def dropoff(self, pose):
+        x = pose[0]
+        y = pose[1]
+        z = pose[2]
+        phi = pose[3]
+        theta = pose[4]
+        psi = pose[5]
+
+        # Add 100mm to z position so we don't smash into board
+        z += 100
+        pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        from kinematics import IK_geometric
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+
+        # Move above desired position (+100mm in Z)
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
         time.sleep(3)
 
-        # Close the gripper
+
+        # Lower the gripper
+        z += -100
+        pose = [x, y, z, phi, theta, psi]
+
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+    
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(2)
+
+        # Open the gripper
         self.rxarm.open_gripper()
         time.sleep(3)
 
-        # Send arm to initial position
-        self.rxarm.set_positions([0.0,       0.0,      0.0,          0.0,        0.0])
-        time.sleep(3)
+            # Raise the gripper
+        z += 100
+        pose = [x, y, z, phi, theta, psi]
 
-        # Set status back to idle
-        self.next_state = "idle"
+        # Get needed angles from IK
+        joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+    
+        # Move to desired position
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(2)
+
+        
+
+        
 
 
 class StateMachineThread(QThread):

@@ -62,10 +62,7 @@ class Gui(QMainWindow):
         """Objects Using Other Classes"""
         self.camera = Camera()
         print("Creating rx arm...")
-        if (dh_config_file is not None):
-            self.rxarm = RXArm(dh_config_file=dh_config_file)
-        else:
-            self.rxarm = RXArm()
+        self.rxarm = RXArm()
         print("Done creating rx arm instance.")
         self.sm = StateMachine(self.rxarm, self.camera)
         """
@@ -337,7 +334,12 @@ class Gui(QMainWindow):
                     self.ui.rdoutMouseWorld.setText("(%.0f,%.0f,%.0f)" %
                                         (xyz_w[0], xyz_w[1], xyz_w[2])) 
             
-            else:
+            if (self.camera.cam_homography_matrix.size == 0):
+
+                self.camera.cs_x = xyz_w[0]
+                self.camera.cs_y = xyz_w[1]
+                self.camera.cs_z = xyz_w[2]
+
                 if not self.camera.world_coord_calib_flag:
                     
                     self.camera.cs_x = xyz_w[0]

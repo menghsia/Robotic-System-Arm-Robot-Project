@@ -28,6 +28,8 @@ sys.path.append('../../interbotix_ws/src/interbotix_ros_toolboxes/interbotix_xs_
 from arm import InterbotixManipulatorXS
 from mr_descriptions import ModernRoboticsDescription as mrd
 
+print("import success rxarm.py")
+
 """
 TODO: Implement the missing functions and add anything you need to support them
 """
