@@ -400,6 +400,13 @@ class Camera():
         #parameters = [LOCATIONS, SIZE, COLOR, ROT]
         # self.block_detections.append(parameters)
 
+        blockA = [0, 225, 25, 0, 0, 0]
+        blockB = [100, 225, 40, 1, 5, 0]
+        blockC = [-100, 225,40, 1, 1, 0]
+        blockD = [100, 125, 0, 0, 0]
+        
+        self.block_detections = [blockA, blockB, blockC, blockD]
+        
 
 
     def detectBlocksInDepthImage(self):
