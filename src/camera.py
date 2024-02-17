@@ -277,6 +277,7 @@ class Camera():
         #     cnt_image = self.warped_img
         
         # else:
+        self.BLOCKS=None
 
         if self.firstbdflag:
             time.sleep(2.5)
