@@ -92,7 +92,7 @@ class StateMachine():
         # pdb.set_trace()
         # print("pointsuv shape: ", points_uv.shape)
         self.dest_points = points_uv[:, :2] #IN UV
-        print("self.dest_points shape: ", self.dest_points.shape)
+        # print("self.dest_points shape: ", self.dest_points.shape)
         # pdb.set_trace()
 
         # ___________
