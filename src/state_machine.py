@@ -399,7 +399,6 @@ class StateMachine():
 
         # Pickup Location
         
-        print(self.camera.cs_x)
         x = round(self.camera.cs_x,2)
         y = round(self.camera.cs_y,2)
         z = round(self.camera.cs_z,2)
@@ -565,26 +564,52 @@ class StateMachine():
         smallBlocks = []
         largeBlocks = []
 
+        for block in self.camera.block_detections: 
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+        
+            # Find all the small blocks in the workspace
+            if block[3] == 0: # block is small
+                smallBlocks.append(block)
+            
+            # Find all the small blocks in the workspace
+            if block[3] == 1: # block is large
+                largeBlocks.append(block)
+
+
         # Move blocks out of target area
+        
+        colorStepSmall  = 0
+        colorStepLarge = 0
 
         # Place small blocks in line 
-        for block in smallBlocks:
-            # Pick up the block
-            self.pickup(block)
-
-            offsetSmall += 50
-            DropLocation = [-250 + offsetSmall, 275, 0, 1.57, 1.57, 1.57]
-            self.dropoff(DropLocation)
+        for i in range(6):
+            for block in smallBlocks:
+                if (block[4] == colorStepSmall):
+                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+            
+                    # Pick up the block
+                    self.pickup(pose)
+                    
+                    DropLocation = [-100 + offsetSmall, 100, 0, 1.57, 1.57, 1.57]
+                    offsetSmall += 50
+                    self.dropoff(DropLocation)
+                    
+            colorStepSmall += 1
 
         # Stack large blocks in line
-        for block in largeBlocks:
-            # Pick up the block
-            self.pickup(block)
+        for i in range(6):
+            for block in largeBlocks:
+                if (block[4] == colorStepLarge):
+                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+            
+                    # Pick up the block
+                    self.pickup(pose)
 
-            offsetLarge += 25
-            DropLocation = [-250 + offsetLarge, 200, 0, 1.57, 1.57, 1.57]
-            self.dropoff(DropLocation)
-
+                    offsetLarge += 50
+                    DropLocation = [-200 + offsetLarge, 200, 0, 1.57, 1.57, 1.57]
+                    self.dropoff(DropLocation)
+                    
+            colorStepLarge += 1
 
 
         # Set status back to idle
@@ -627,30 +652,22 @@ class StateMachine():
         theta = pose[4]
         psi = pose[5]
 
-        # Add 100mm to z position so we don't smash into board
-        z += 100
-        
-        # Offsets (Corrections)
-        y = y - 25
-        x = 0.75*x
-        z = z - 20
-
         pose = [x, y, z, phi, theta, psi]
 
         blockSize = 40
-
+        z += 150
+        
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
-
-        # Move above desired position (+100mm in Z)
+        
+        # Move to desired position
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
         time.sleep(3)
-
-        # Lower the gripper
-        z = z - 100 - blockSize
+        
+        z = z - 203
         pose = [x, y, z, phi, theta, psi]
-
+     
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
     
@@ -663,7 +680,7 @@ class StateMachine():
         time.sleep(1)
 
         # Raise the gripper
-        z = z + 100 + blockSize
+        z = z + 150 #+ blockSize
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
@@ -681,15 +698,9 @@ class StateMachine():
         theta = pose[4]
         psi = pose[5]
 
-        # Add 100mm to z position
-        z += 100
-       
-        # Offsets (Corrections)
-        y = y - 25
-        x = x 
-        z = z - 5
-
+        z = z + 100
         pose = [x, y, z, phi, theta, psi]
+        
 
         # Get needed angles from IK
         from kinematics import IK_geometric
@@ -700,7 +711,7 @@ class StateMachine():
         time.sleep(3)
 
         # Lower the gripper
-        z = z - 100 
+        z = z - 115
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK
