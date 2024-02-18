@@ -458,7 +458,23 @@ class StateMachine():
         largeBlocks = []
         
         print(self.camera.block_detections)
-        
+
+        # for i in range(20):
+        #     if self.camera.block_detections[i,3]==0 and self.camera.block_detections[i,1]>=150:
+        #         smallBlocks=self.camera.block_detections[i]
+        #         pose = [smallBlocks[0], smallBlocks[1], smallBlocks[2], 1.57, 1.57, 1.57]
+        #         self.pickup(pose)
+        #         offsetSmall += 50
+        #         SmallDropLocation = [-100 - offsetSmall, -50, 0, 1.57, 1.57, 1.57]
+        #         self.dropoff(SmallDropLocation)
+        #     if self.camera.block_detections[i,3]==1 and self.camera.block_detections[i,1]>=150:
+        #         largeBlocks=self.camera.block_detections[i]
+        #         pose = [largeBlocks[0], largeBlocks[1], largeBlocks[2], 1.57, 1.57, 1.57]
+        #         self.pickup(pose)
+        #         offsetLarge += 75
+        #         SmallDropLocation = [75 + offsetLarge, -50, 0, 1.57, 1.57, 1.57]
+        #         self.dropoff(SmallDropLocation)
+
         for block in self.camera.block_detections: 
             print(block)
             # Find all the small blocks in the workspace
