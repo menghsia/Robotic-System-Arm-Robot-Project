@@ -457,7 +457,24 @@ class StateMachine():
         smallBlocks = []
         largeBlocks = []
         
-        print(self.camera.block_detections)
+        # print(self.camera.block_detections)
+        # for i in range(20):
+        #     if self.camera.block_detections[i,3]==0 and self.camera.block_detections[i,1]>=150:
+        #         smallBlocks=self.camera.block_detections[i]
+        #         print("smallBlocks:",smallBlocks)
+        #         pose = [smallBlocks[0], smallBlocks[1], smallBlocks[2], 1.57, 1.57, 1.57,0]
+        #         self.pickup(pose)
+        #         offsetSmall += 50
+        #         SmallDropLocation = [-100 - offsetSmall, -50, 0, 1.57, 1.57, 1.57,0]
+        #         self.dropoff(SmallDropLocation)
+        #     if self.camera.block_detections[i,3]==1 and self.camera.block_detections[i,1]>=150:
+        #         largeBlocks=self.camera.block_detections[i]
+        #         pose = [largeBlocks[0], largeBlocks[1], largeBlocks[2], 1.57, 1.57, 1.57,0]
+        #         self.pickup(pose)
+        #         offsetLarge += 75
+        #         SmallDropLocation = [75 + offsetLarge, -50, 0, 1.57, 1.57, 1.57,0]
+        #         self.dropoff(SmallDropLocation)
+
         
         for block in self.camera.block_detections: 
             print(block)
@@ -474,26 +491,26 @@ class StateMachine():
 
         # Move all small blocks to the left
         for block in smallBlocks: 
-            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
 
             # Pick up the block
             self.pickup(pose)
 
             # Drop off the block
             offsetSmall += 50
-            SmallDropLocation = [-100 - offsetSmall, -50, 0, 1.57, 1.57, 1.57]
+            SmallDropLocation = [-100 - offsetSmall, -50, 0, 1.57, 1.57, 1.57, 0]
             self.dropoff(SmallDropLocation)
 
         # Move all large blocks to the right
         for block in largeBlocks: 
-            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
 
             # Pick up the block
             self.pickup(pose)
 
             # Drop off the block
             offsetLarge += 75
-            SmallDropLocation = [75 + offsetLarge, -50, 0, 1.57, 1.57, 1.57]
+            SmallDropLocation = [75 + offsetLarge, -50, 0, 1.57, 1.57, 1.57, 0]
             self.dropoff(SmallDropLocation)
 
         # Set status back to idle
@@ -516,7 +533,7 @@ class StateMachine():
         largeBlocks = []
 
         for block in self.camera.block_detections: 
-            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
         
             # Find all the small blocks in the workspace
             if block[3] == 0: # block is small
@@ -530,21 +547,25 @@ class StateMachine():
 
         # Stack small blocks on left apriltag
         for block in smallBlocks:
-            pose = [block[0], block[1], block[2], 1.57, 1.57, 1]
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
             # Pick up the block
             self.pickup(pose)
-
-            offsetSmall += 25
-            leftATLocation = [-250, 275, offsetSmall, 3.12, 1.57, np.arctan2(-250,275)]
+            
+            leftATLocation = [-250, -25, offsetSmall, 1.57, 1.57, 1.57, 0]
+            offsetSmall += 20
+            
             self.dropoff(leftATLocation)
 
         # Stack large blocks on right apriltag
         for block in largeBlocks:
+            pose = [block[0], block[1], block[2] - 10, 1.57, 1.57, 1.57, 0]
             # Pick up the block
+            
             self.pickup(pose)
 
-            offsetSmall += 25
-            rightATLocation = [-250, 200, offsetLarge, 3.12, 1.57, 1]
+            rightATLocation = [250, 25, offsetLarge, 1.57, 1.57, 1.57, 0]
+            offsetLarge += 40
+            
             self.dropoff(rightATLocation)
 
         # Set status back to idle
@@ -566,7 +587,7 @@ class StateMachine():
         largeBlocks = []
 
         for block in self.camera.block_detections: 
-            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+            pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
         
             # Find all the small blocks in the workspace
             if block[3] == 0: # block is small
@@ -586,12 +607,12 @@ class StateMachine():
         for i in range(6):
             for block in smallBlocks:
                 if (block[4] == colorStepSmall):
-                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
             
                     # Pick up the block
                     self.pickup(pose)
                     
-                    DropLocation = [-100 + offsetSmall, 100, 0, 1.57, 1.57, 1.57]
+                    DropLocation = [-300 + offsetSmall, 0, 0, 1.57, 1.57, 1.57, 0]
                     offsetSmall += 50
                     self.dropoff(DropLocation)
                     
@@ -601,13 +622,13 @@ class StateMachine():
         for i in range(6):
             for block in largeBlocks:
                 if (block[4] == colorStepLarge):
-                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57]
+                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
             
                     # Pick up the block
                     self.pickup(pose)
 
                     offsetLarge += 50
-                    DropLocation = [-200 + offsetLarge, 200, 0, 1.57, 1.57, 1.57]
+                    DropLocation = [150 + offsetLarge, 0, 0, 1.57, 1.57, 1.57, 0]
                     self.dropoff(DropLocation)
                     
             colorStepLarge += 1
@@ -652,11 +673,15 @@ class StateMachine():
         phi = pose[3]
         theta = pose[4]
         psi = pose[5]
+        AprilTag = pose[6]
+        
+        y = y * 0.83
+        x = x * 0.83
+        
+        pose = [x, y, z, phi, theta, psi, AprilTag]
 
-        y = 0.8 * y
-        x = 0.85 * x
-        pose = [x, y, z, phi, theta, psi]
 
+            
         blockSize = 40
         z += 100
         
@@ -668,8 +693,8 @@ class StateMachine():
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
         time.sleep(3)
         
-        z = z - 100 - blockSize
-        pose = [x, y, z, phi, theta, psi]
+        z = z - 100 - blockSize + AprilTag * 100
+        pose = [x, y, z, phi, theta, psi, AprilTag]
      
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -684,7 +709,7 @@ class StateMachine():
 
         # Raise the gripper
         z = z + 100 #+ blockSize
-        pose = [x, y, z, phi, theta, psi]
+        pose = [x, y, z, phi, theta, psi, AprilTag]
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -700,9 +725,10 @@ class StateMachine():
         phi = pose[3]
         theta = pose[4]
         psi = pose[5]
+        AprilTag = pose[6]
 
         z = z + 100
-        pose = [x, y, z, phi, theta, psi]
+        pose = [x, y, z, phi, theta, psi, AprilTag]
         
 
         # Get needed angles from IK
@@ -714,8 +740,8 @@ class StateMachine():
         time.sleep(3)
 
         # Lower the gripper
-        z = z - 115
-        pose = [x, y, z, phi, theta, psi]
+        z = z - 115 + AprilTag * 100
+        pose = [x, y, z, phi, theta, psi, AprilTag]
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -730,7 +756,7 @@ class StateMachine():
 
         # Raise the gripper
         z += 100
-        pose = [x, y, z, phi, theta, psi]
+        pose = [x, y, z, phi, theta, psi, AprilTag]
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
