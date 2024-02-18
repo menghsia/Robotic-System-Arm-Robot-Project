@@ -280,7 +280,9 @@ class Camera():
         # else:
         intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]])     # factory intrinsic matrix
         K_inv = np.linalg.inv(intrinsicMat)
-        self.BLOCKS=None
+        self.BLOCKS=np.zeros((15,5))
+        smallcount=0
+        bigcount=0
 
         if self.firstbdflag:
             time.sleep(1)
@@ -405,6 +407,8 @@ class Camera():
                             self.BLOCKS=blockarray
                         else:
                             self.BLOCKS=np.append(self.BLOCKS,blockarray,axis=0)
+                        # self.BLOCKS[smallcount]=np.array([xyz_w[0],xyz_w[1],xyz_w[2],0,colornum,rad])
+                        # smallcount=smallcount+1
                     
                     #detect if it's big blocks
                     if 1500<=M["m00"] and M["m00"]<=4000:
@@ -414,6 +418,8 @@ class Camera():
                             self.BLOCKS=blockarray
                         else:
                             self.BLOCKS=np.append(self.BLOCKS,blockarray,axis=0)
+                        # self.BLOCKS[bigcount]=np.array([xyz_w[0],xyz_w[1],xyz_w[2],0,colornum,rad])
+                        # bigcount=bigcount+1
 
         # cv2.waitKey(1)  # waits 1 ms
         
