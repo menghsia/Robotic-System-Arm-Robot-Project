@@ -18,6 +18,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from apriltag_msgs.msg import *
 from cv_bridge import CvBridge, CvBridgeError
 import pdb
+import math
 
 
 class Camera():
@@ -99,26 +100,26 @@ class Camera():
         self.firstbdflag = True
         self.BLOCKS=None
 
-
-    # def retrieve_area_color(self, data, contour, labels):
-    #     mask = np.zeros(data.shape[:2], dtype="uint8")
-    #     cv2.drawContours(mask, [contour], -1, 255, -1)
-    #     mean = cv2.mean(data, mask=mask)[:3]
-
-    #     # for label in labels:
-    #     #     color_range=label["range"]
-    #     #     low, high = np.array(color_range[0]),np.array(color_range[1])
-    #     # if all(low<=mean)and all(mean<=high):
-    #     #     return label["id"]
-    #     # return "Unknown"
-
-    #     min_dist = (np.inf, None)
-    #     for label in labels:
-    #         d = np.linalg.norm(label["color"] - np.array(mean))
-    #         if d < min_dist[0]:
-    #             min_dist = (d, label["id"])
-    #     return min_dist[1]
+    def is_square(self, contour, eps=0.05):
+        # Calculate the perimeter of the contour
+        peri = cv2.arcLength(contour, True)
+        # Approximate the contour to a polygon
+        approx = cv2.approxPolyDP(contour, 0.04 * peri, True)
+        print("approx",approx)
+        print("len:",len(approx))
         
+        # Check if the polygon has 4 sides
+        if len(approx) == 4:
+            # Calculate the lengths of the sides
+            (x, y, w, h) = cv2.boundingRect(approx)
+            aspectRatio = float(w) / h
+            
+            # Check if sides are approximately equal and the shape is close to a square
+            if 0.85 <= aspectRatio <= 1.15: # Adjust this range as needed
+                return True
+        return False
+
+
     def retrieve_area_color(self, data, contour, labels):
         mask = np.zeros(data.shape[:2], dtype="uint8")
         cv2.drawContours(mask, [contour], -1, 255, -1)
@@ -277,10 +278,12 @@ class Camera():
         #     cnt_image = self.warped_img
         
         # else:
+        intrinsicMat = np.array([[904.6,0,635.982],[0,905.29,353.06],[0,0,1]])     # factory intrinsic matrix
+        K_inv = np.linalg.inv(intrinsicMat)
         self.BLOCKS=None
 
         if self.firstbdflag:
-            time.sleep(2.5)
+            time.sleep(1)
             self.firstbdflag = False
 
         rgb_image = self.VideoFrame.copy() #NDArray[uint8]
@@ -342,19 +345,21 @@ class Camera():
         cv2.rectangle(cnt_image, (120,14),(1164,703), (255, 0, 0), 2)  # board box
         cv2.rectangle(cnt_image, (562,361),(725,720), (255, 0, 0), 2)  # arm box
 
-        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 10, 990), mask)
+        thresh = cv2.bitwise_and(cv2.inRange(depth_data, 900, 990), mask)
         # cv2.imshow("Block detections window", thresh)  # update rate??
         # thresh = cv2.bitwise_and(cv2.inRange(depth_data, 500, 960), mask)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         cv2.drawContours(cnt_image, contours, -1, (0,255,255), thickness=1)
 
-        for contour in contours:  #TODO: if contours are below a certain size then discard
+        for contour in contours:  
+            M = cv2.moments(contour)
             color = self.retrieve_area_color(rgb_image, contour, self.colors)
             theta = cv2.minAreaRect(contour)[2]
-            M = cv2.moments(contour)
- 
-            if M["m00"] >200:
+            rad= int(theta) * (math.pi / 180)
+            if M["m00"] >200: #filter noise
+                # if self.is_square(contour): #only detect squares
+                    
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
 
@@ -377,28 +382,41 @@ class Camera():
                     colornum=4
                 if color=="violet":
                     colornum=5
-                if 500<=M["m00"] and M["m00"]<=1450:
-                    blockarray=np.array([int(cx),int(cy),0,colornum,int(theta)])
-                    blockarray=blockarray.reshape(1, -1)
-                    if self.BLOCKS is None:
-                        self.BLOCKS=blockarray
-                    else:
-                        self.BLOCKS=np.append(self.BLOCKS,blockarray,axis=0)
-                        
-                if 1500<=M["m00"] and M["m00"]<=3000:
-                    blockarray=np.array([int(cx),int(cy),1,colornum,int(theta)])
-                    blockarray=blockarray.reshape(1, -1)
-                    if self.BLOCKS is None:
-                        self.BLOCKS=blockarray
-                    else:
-                        self.BLOCKS=np.append(self.BLOCKS,blockarray,axis=0)
+                
+                if (self.cam_homography_matrix.size != 0): #if calibrated
+                    extrinsicMat = self.cam_extrinsic_maxtrix
+                    homography_mat = self.cam_homography_matrix
+                    point_uv1 = np.array([int(cx),int(cy),1])
+                    point_uv_dash = np.dot(np.linalg.inv(homography_mat), point_uv1)
+                    point_uv_dash[0] = point_uv_dash[0]/point_uv_dash[2]
+                    point_uv_dash[1] = point_uv_dash[1]/point_uv_dash[2]
+                    point_uv_dash[2] = point_uv_dash[2]/point_uv_dash[2]
+                    depth_camera = self.DepthFrameRaw[int(point_uv_dash[1])][int(point_uv_dash[0])]
+                    point_camera = depth_camera * (np.dot(K_inv,point_uv_dash))
+                    point_camera=np.append(point_camera, [1])
+                    points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), point_camera)
+                    xyz_w = points_transformed_ideal
+                    
+                    #detect if it's small blocks
+                    if 500<=M["m00"] and M["m00"]<=1450:
+                        blockarray=np.array([xyz_w[0],xyz_w[1],xyz_w[2],0,colornum,rad])
+                        blockarray=blockarray.reshape(1, -1)
+                        if self.BLOCKS is None:
+                            self.BLOCKS=blockarray
+                        else:
+                            self.BLOCKS=np.append(self.BLOCKS,blockarray,axis=0)
+                    
+                    #detect if it's big blocks
+                    if 1500<=M["m00"] and M["m00"]<=3000:
+                        blockarray=np.array([xyz_w[0],xyz_w[1],xyz_w[2],1,colornum,rad])
+                        blockarray=blockarray.reshape(1, -1)
+                        if self.BLOCKS is None:
+                            self.BLOCKS=blockarray
+                        else:
+                            self.BLOCKS=np.append(self.BLOCKS,blockarray,axis=0)
 
-        print(self.BLOCKS)
         # cv2.waitKey(1)  # waits 1 ms
         
-        #big blocks:1500-3000
-        #small blocks:500-1450
-
 
 
         # For each block detected...
@@ -418,7 +436,7 @@ class Camera():
         blockE = [0,175,25,0,1,0]
         blockF = [100,225,25,0,0]
         
-        self.block_detections = [blockA, blockB, blockC, blockD, blockE, blockF]
+        self.block_detections = self.BLOCKS
         
 
 

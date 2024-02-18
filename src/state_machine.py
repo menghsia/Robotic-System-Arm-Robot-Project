@@ -457,8 +457,9 @@ class StateMachine():
         smallBlocks = []
         largeBlocks = []
         
-
-        for block in self.camera.block_detections:
+        print(self.camera.block_detections)
+        
+        for block in self.camera.block_detections: 
             print(block)
             # Find all the small blocks in the workspace
             if block[3] == 0: # block is small
@@ -652,10 +653,12 @@ class StateMachine():
         theta = pose[4]
         psi = pose[5]
 
+        y = 0.8 * y
+        x = 0.85 * x
         pose = [x, y, z, phi, theta, psi]
 
         blockSize = 40
-        z += 150
+        z += 100
         
         # Get needed angles from IK
         from kinematics import IK_geometric
@@ -665,7 +668,7 @@ class StateMachine():
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
         time.sleep(3)
         
-        z = z - 203
+        z = z - 100 - blockSize
         pose = [x, y, z, phi, theta, psi]
      
         # Get needed angles from IK
@@ -680,7 +683,7 @@ class StateMachine():
         time.sleep(1)
 
         # Raise the gripper
-        z = z + 150 #+ blockSize
+        z = z + 100 #+ blockSize
         pose = [x, y, z, phi, theta, psi]
 
         # Get needed angles from IK

@@ -284,7 +284,7 @@ class Gui(QMainWindow):
             # world_origin_tf = np.array([[1,0,0, 100], [0,1,0, 150], [0,0,1,0], [0,0,0,1]])
             # xyz_w = np.dot(world_origin_tf, xyz_w_pre_tf)
 
-            if not (self.camera.cam_homography_matrix.size == 0):  # if NOT calibrated
+            if not (self.camera.cam_homography_matrix.size == 0): # if calibrated
 
                 extrinsicMat = self.camera.cam_extrinsic_maxtrix
 
@@ -310,6 +310,7 @@ class Gui(QMainWindow):
                 # point_camera = np.transpose(depth_camera * np.dot(K_inv, np.transpose(np.column_stack((point_uv_dash, point_ones)))))
                 #point_camera = np.transpose(depth_camera * np.dot(K_inv, point_uv_dash))
                 point_camera = depth_camera * (np.dot(K_inv,point_uv_dash))
+                
 
                 #points_transformed_ideal = np.dot(np.linalg.inv(extrinsicMat), np.transpose(np.column_stack((point_camera, point_ones))))
                 point_camera=np.append(point_camera, [1])

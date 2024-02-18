@@ -220,6 +220,7 @@ def IK_geometric(dh_params, pose):
     yc = y
     zc = z + 175
     
+    
     print(xc)
     print(yc)
     print(zc)
