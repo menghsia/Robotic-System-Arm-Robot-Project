@@ -414,7 +414,7 @@ class Camera():
 
                     
                     #detect if it's big blocks
-                    if 1500<=M["m00"] and M["m00"]<=3000:
+                    if 1500<=M["m00"] and M["m00"]<=4000:
                         blockarray=np.array([xyz_w[0],xyz_w[1],xyz_w[2],1,colornum,rad])
                         blockarray=blockarray.reshape(1, -1)
                         if self.BLOCKS is None:
