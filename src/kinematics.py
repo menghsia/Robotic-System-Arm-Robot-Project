@@ -216,6 +216,7 @@ def IK_geometric(dh_params, pose):
     # yc = wrist[1]
     # zc = wrist[2] - 104
     
+    
     tgtAngle = math.atan2(x, y)
     
     xc = x 
@@ -245,6 +246,9 @@ def IK_geometric(dh_params, pose):
         xc = 0
         yc = y - 175
         zc = z 
+    
+    
+    
 
    
 
@@ -259,10 +263,9 @@ def IK_geometric(dh_params, pose):
     
     
     J21 = -np.arctan2(xc,yc)
-    print(((r2**2 + (0.001*(zc - 104))**2) - L1**2 - L2**2) / (2 * L1 * L2))
     J23 = -math.acos(((r2**2 + (0.001*(zc - 104))**2) - L1**2 - L2**2) / (2 * L1 * L2))
     J22 = math.atan2(0.001*(zc - 104), r2) - math.atan2(L2*math.sin(J23), L1 + L2 * math.cos(J23))
-    J24 =  - phi - (J23 + J22) + 0.785 * AprilTag
+    J24 =  - phi - (J23 + J22) + 0.81 * AprilTag
     configTwo = [J21, 1.31 - J22, -1.57 - J23, -J24 + 0.26, 0]
 
     # Config Three: Sum, Down, Up

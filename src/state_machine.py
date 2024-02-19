@@ -607,12 +607,12 @@ class StateMachine():
         for i in range(6):
             for block in smallBlocks:
                 if (block[4] == colorStepSmall):
-                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
+                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 1]
             
                     # Pick up the block
                     self.pickup(pose)
                     
-                    DropLocation = [-300 + offsetSmall, 0, 0, 1.57, 1.57, 1.57, 0]
+                    DropLocation = [-300 + offsetSmall, 0, 0, 1.57, 1.57, 1.57, 1]
                     offsetSmall += 50
                     self.dropoff(DropLocation)
                     
@@ -622,11 +622,11 @@ class StateMachine():
         for i in range(6):
             for block in largeBlocks:
                 if (block[4] == colorStepLarge):
-                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
+                    pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 1]
             
                     # Pick up the block
                     self.pickup(pose)
-                    DropLocation = [150 + offsetLarge, 0, 0, 1.57, 1.57, 1.57, 0]
+                    DropLocation = [150 + offsetLarge, 0, 0, 1.57, 1.57, 1.57, 1]
                     
                     offsetLarge += 60
                     self.dropoff(DropLocation)
@@ -704,15 +704,33 @@ class StateMachine():
 
     def Bonus(self):
         print("Bonus")
+        from kinematics import IK_geometric
 
-        for i in range(20):
+        for i in range(5):
 
-            pose = [0, 275, 100, 1.57, 1.57, 1.57, 2]
+            pose = [0, 175, 30, 1.57, 1.57, 1.57, 2]
             self.pickup(pose)
+            
+          
+            pose = [0, 175, 70, 1.57, 1.57, 1.57, 2]
+            # Get needed angles from IK
+            joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+    
+            # Move to desired position
+            self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+            time.sleep(2)
                     
-            DropLocation = [0, 375, 100, 1.57, 1.57, 1.57, 2]
+            DropLocation = [0, 225, 70, 1.57, 1.57, 1.57, 2]
             self.dropoff(DropLocation)
-
+            
+            
+            pose = [0, 225, 10, 1.57, 1.57, 1.57, 2]
+            self.pickup(pose)
+            
+            DropLocation = [0, 175, 15, 1.57, 1.57, 1.57, 2]
+            self.dropoff(DropLocation)
+            
+        
         # Set status back to idle
         self.next_state = "idle"
 
@@ -734,17 +752,18 @@ class StateMachine():
         psi = pose[5]
         AprilTag = pose[6]
         
-        y = y * 0.85 + 0.05*abs(x)
-        x = x * 0.85 + 0.05*abs(y)
-        z = z - 10 
+        if AprilTag != 2: 
+            y = y * 0.85 + 0.05*abs(x)
+            x = x * 0.85 + 0.05*abs(y)
+            z = z - 10 
+            
+            z += 160
         
         pose = [x, y, z, phi, theta, psi, AprilTag]
-
-
-            
         blockSize = 40
-        z += 160
         
+        
+            
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -753,7 +772,9 @@ class StateMachine():
         self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
         time.sleep(3)
         
-        z = z - 150 - blockSize + AprilTag * 100
+        if AprilTag != 2:  
+            z = z - 150 - blockSize 
+        
         pose = [x, y, z, phi, theta, psi, AprilTag]
      
         # Get needed angles from IK
@@ -767,9 +788,13 @@ class StateMachine():
         self.rxarm.close_gripper()
         time.sleep(1)
 
-        # Raise the gripper
-        z = z + 150 #+ blockSize
-        pose = [x, y, z, phi, theta, psi, AprilTag]
+    
+        
+        if AprilTag != 2: 
+            # Raise the gripper
+            z = z + 150 #+ blockSize
+            pose = [x, y, z, phi, theta, psi, AprilTag]
+    
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
@@ -788,11 +813,12 @@ class StateMachine():
         psi = pose[5]
         AprilTag = pose[6]
 
-        z = z + 150
+
         
-        y = y * 0.85 + 0.05*abs(x)
-        x = x * 0.85 + 0.05*abs(y)
-        z = z 
+        if AprilTag != 2: 
+            y = y * 0.85 + 0.05*abs(x)
+            x = x * 0.85 + 0.05*abs(y)
+            z = z + 140
         
         pose = [x, y, z, phi, theta, psi, AprilTag]
         
@@ -800,20 +826,23 @@ class StateMachine():
         # Get needed angles from IK
         from kinematics import IK_geometric
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
-
+        
+        
         # Move above desired position (+100mm in Z)
-        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0] + 1.57,1)])
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0] + 1.57 * (2-AprilTag),1)])
         time.sleep(3)
-
-        # Lower the gripper
-        z = z - 160 + AprilTag * 100
-        pose = [x, y, z, phi, theta, psi, AprilTag]
+            
+        if AprilTag != 2:
+            # Lower the gripper
+            z = z - 160 + AprilTag * 100
+            pose = [x, y, z, phi, theta, psi, AprilTag]
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
+        
     
         # Move to desired position
-        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0] + 1.57,1)])
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0] + 1.57 * (2-AprilTag),1)])
         time.sleep(2)
 
         # Open the gripper
@@ -821,14 +850,19 @@ class StateMachine():
         time.sleep(1)
 
         # Raise the gripper
-        z += 50
-        pose = [x, y, z, phi, theta, psi, AprilTag]
+        if AprilTag !=2:
+            z += 50
+            pose = [x, y, z, phi, theta, psi, AprilTag]
+            
+        if AprilTag == 2:
+            y -= 100 
+            
 
         # Get needed angles from IK
         joint_configs = IK_geometric(self.rxarm.dh_params, pose) 
     
         # Move to desired position
-        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0] + 1.57,1)])
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0] + 1.57 * (2-AprilTag),1)])
         time.sleep(3)
 
         
