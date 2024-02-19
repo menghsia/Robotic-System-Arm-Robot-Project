@@ -112,6 +112,10 @@ class StateMachine():
 
         self.homography_matrix = []  #initialized empty
 
+        # landing zone for event 3
+        self.landing_zone_X_range = [-350, 350] # lower, upper X axis ranges
+        self.landing_zone_Y_range = [-75, 25] # lower, upper Y axis ranges
+
 
     def set_next_state(self, state):
         """!
@@ -571,9 +575,32 @@ class StateMachine():
         # Set status back to idle
         self.next_state = "idle"
 
+    def clearLandingZone(self):
+        # to remove blocks from the landing zone in event 3
+        blocks_removal_poses = []
+        for block in self.camera.block_detections: 
+            poseblock = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
+
+            # check if within X range
+            if ((poseblock[0] >= self.landing_zone_X_range[0]) and (poseblock[0] <= self.landing_zone_X_range[1])):
+                blocks_removal_poses.append(poseblock) 
+                continue
+            
+            elif ((poseblock[1] >= self.landing_zone_Y_range[0]) and (poseblock[1] <= self.landing_zone_Y_range[1])):
+                blocks_removal_poses.append(poseblock) 
+                continue
+        
+        # iterate over blocks_removal_poses to move blocks out of the landing zone
+        for blockpose_to_remove in blocks_removal_poses:
+            self.pushblock(blockpose_to_remove)
+
+        self.rxarm.open_gripper()
+
 
     def eventThree(self):
         print("Event Three")
+
+        self.clearLandingZone()
 
         # GripperDownPose = [1.57,1.57,1.57]
         # GripperHorizontalPose = [3.12, 1.57, np.atan2(y,x)]
@@ -586,6 +613,8 @@ class StateMachine():
         smallBlocks = []
         largeBlocks = []
 
+        # NOTE! block detections is updated continuously in real-time, so "new" locations after clearing
+        # landing zone used here 
         for block in self.camera.block_detections: 
             pose = [block[0], block[1], block[2], 1.57, 1.57, 1.57, 0]
         
@@ -725,6 +754,50 @@ class StateMachine():
         time.sleep(3)
 
 
+    def pushblock(self, pose):
+
+        x = pose[0]
+        y = pose[1]
+        z = 25
+        phi = pose[3]
+        theta = pose[4]
+        psi = pose[5]
+        AprilTag = pose[6]
+        
+        y = y * 0.85 + 0.05*abs(x)
+        x = x * 0.85 + 0.05*abs(y)
+                
+        pose = [x, y, z, phi, theta, psi, AprilTag]
+        delta = -25  # mm
+        final_y_offset = 125  # mm
+        z_raise = 150  # mm
+        
+        # Close the gripper first
+        self.rxarm.close_gripper()
+
+        from kinematics import IK_geometric
+        initial_pose = [x, y + delta, z, phi, theta, psi, AprilTag] 
+        joint_configs = IK_geometric(self.rxarm.dh_params, initial_pose) 
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+            
+        # push block in +ve y-dir of landing zone
+        final_pose = [x, y + final_y_offset, z, phi, theta, psi, AprilTag]
+        joint_configs = IK_geometric(self.rxarm.dh_params, final_pose) 
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+
+        # raise arm after pushing
+        raised_pose = [x, y + final_y_offset, z + z_raise, phi, theta, psi, AprilTag] 
+        joint_configs = IK_geometric(self.rxarm.dh_params, raised_pose) 
+        self.rxarm.set_positions([round(joint_configs[1][0],1),       round(joint_configs[1][1],1),      round(joint_configs[1][2],1),          round(joint_configs[1][3],1),        round(joint_configs[1][0],1)])
+        time.sleep(3)
+
+        # self.rxarm.open_gripper()
+
+
     def pickup(self, pose):
         x = pose[0]
         y = pose[1]
@@ -739,8 +812,6 @@ class StateMachine():
         z = z - 10 
         
         pose = [x, y, z, phi, theta, psi, AprilTag]
-
-
             
         blockSize = 40
         z += 160
