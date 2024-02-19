@@ -191,7 +191,7 @@ def IK_geometric(dh_params, pose):
     phi = pose[3]
     theta = pose[4]
     psi = pose[5]
-    AprilTag = pose[6]
+    rangeExtend = pose[6]
 
 
     angle = []
@@ -222,8 +222,16 @@ def IK_geometric(dh_params, pose):
     yc = y
     zc = z + 175 
     
-    if AprilTag == 1: 
-        print("April Tag Adjustment")
+    L1 = 0.205
+    L2 = 0.200
+    
+    r2 = np.sqrt((0.001*xc)**2 + (0.001*yc)**2)
+    
+    AprilTag = 0
+    
+    if (((r2**2 + (0.001*(zc - 104))**2) - L1**2 - L2**2) / (2 * L1 * L2)) > 1: 
+        print("Need more range")
+        AprilTag = 1
         xc = x - 175 * math.cos(0.785) * math.sin(tgtAngle)
         yc = y - 175 * math.cos(0.785) * math.cos(tgtAngle)
         zc = z + 175 * math.cos(0.785)
@@ -231,8 +239,14 @@ def IK_geometric(dh_params, pose):
     print(xc)
     print(yc)
     print(zc)
+    
+    if (rangeExtend == 2):
+        AprilTag = 2
+        xc = 0
+        yc = y - 175
+        zc = z 
 
-    r2 = np.sqrt((0.001*xc)**2 + (0.001*yc)**2)
+   
 
     # Config One: Down, Up, Sum
     J11 = -np.arctan2(xc,yc)
@@ -242,8 +256,7 @@ def IK_geometric(dh_params, pose):
     configOne = [J11, 1.57 - J12, -1.57 - J13, -J14,0]
 
     # Config Two: Up, Down, Sum
-    L1 = 0.205
-    L2 = 0.200
+    
     
     J21 = -np.arctan2(xc,yc)
     print(((r2**2 + (0.001*(zc - 104))**2) - L1**2 - L2**2) / (2 * L1 * L2))
